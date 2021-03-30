@@ -31,7 +31,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 @GwtCompatible
 public final class Strings {
-  private Strings() {}
 
   /**
    * Returns the given string if it is non-null; the empty string otherwise.

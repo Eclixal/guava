@@ -46,7 +46,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 @GwtCompatible(emulated = true)
 public final class Throwables {
-  private Throwables() {}
 
   /**
    * Throws {@code throwable} if it is an instance of {@code declaredType}. Example usage:
