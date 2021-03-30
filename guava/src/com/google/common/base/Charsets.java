@@ -32,7 +32,6 @@ import java.nio.charset.Charset;
  */
 @GwtCompatible(emulated = true)
 public final class Charsets {
-  private Charsets() {}
 
   /**
    * US-ASCII: seven-bit ASCII, the Basic Latin block of the Unicode character set (ISO646-US).
