@@ -779,25 +779,25 @@ public final class LongMath {
   static final long[] factorials = {
     1L,
     1L,
-    1L * 2,
-    1L * 2 * 3,
-    1L * 2 * 3 * 4,
-    1L * 2 * 3 * 4 * 5,
-    1L * 2 * 3 * 4 * 5 * 6,
-    1L * 2 * 3 * 4 * 5 * 6 * 7,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19,
-    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20
+          (long) 2,
+          (long) 2 * 3,
+          (long) 2 * 3 * 4,
+          (long) 2 * 3 * 4 * 5,
+          (long) 2 * 3 * 4 * 5 * 6,
+          (long) 2 * 3 * 4 * 5 * 6 * 7,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19,
+          (long) 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20
   };
 
   /**
@@ -1008,7 +1008,7 @@ public final class LongMath {
     if (n < 66) {
       // Encode all primes less than 66 into mask without 0 and 1.
       long mask =
-          (1L << (2 - 2))
+          (1L << (0))
               | (1L << (3 - 2))
               | (1L << (5 - 2))
               | (1L << (7 - 2))
@@ -1241,7 +1241,6 @@ public final class LongMath {
    *     is not precisely representable as a {@code double}
    * @since 30.0
    */
-  @SuppressWarnings("deprecation")
   @GwtIncompatible
   public static double roundToDouble(long x, RoundingMode mode) {
     // Logic adapted from ToDoubleRounder.
@@ -1265,6 +1264,7 @@ public final class LongMath {
       cmpXToRoundArbitrarily = Longs.compare(x, roundArbitrarilyAsLong);
     }
 
+    double rondValue = (cmpXToRoundArbitrarily <= 0) ? roundArbitrarily : Math.nextUp(roundArbitrarily);
     switch (mode) {
       case UNNECESSARY:
         checkRoundingUnnecessary(cmpXToRoundArbitrarily == 0);
@@ -1274,18 +1274,18 @@ public final class LongMath {
             ? roundArbitrarily
             : DoubleUtils.nextDown(roundArbitrarily);
       case CEILING:
-        return (cmpXToRoundArbitrarily <= 0) ? roundArbitrarily : Math.nextUp(roundArbitrarily);
+        return rondValue;
       case DOWN:
         if (x >= 0) {
           return (cmpXToRoundArbitrarily >= 0)
               ? roundArbitrarily
               : DoubleUtils.nextDown(roundArbitrarily);
         } else {
-          return (cmpXToRoundArbitrarily <= 0) ? roundArbitrarily : Math.nextUp(roundArbitrarily);
+          return rondValue;
         }
       case UP:
         if (x >= 0) {
-          return (cmpXToRoundArbitrarily <= 0) ? roundArbitrarily : Math.nextUp(roundArbitrarily);
+          return rondValue;
         } else {
           return (cmpXToRoundArbitrarily >= 0)
               ? roundArbitrarily
