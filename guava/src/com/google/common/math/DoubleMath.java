@@ -436,8 +436,8 @@ public final class DoubleMath {
     // this case only, we can compute the sum as a long without risking overflow or loss of
     // precision. So we do that, as it's slightly quicker than the Knuth algorithm.
     long sum = 0;
-    for (int index = 0; index < values.length; ++index) {
-      sum += values[index];
+    for (int value : values) {
+      sum += value;
     }
     return (double) sum / values.length;
   }

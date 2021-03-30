@@ -49,7 +49,7 @@ public final class Objects extends ExtraObjectsMethodsForWeb {
    * java.util.Objects#equals} instead.
    */
   public static boolean equal(@Nullable Object a, @Nullable Object b) {
-    return a == b || (a != null && a.equals(b));
+    return java.util.Objects.equals(a, b);
   }
 
   /**

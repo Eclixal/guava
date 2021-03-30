@@ -34,7 +34,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 @GwtCompatible
 public final class Suppliers {
-  private Suppliers() {}
 
   /**
    * Returns a new supplier which is the composition of the provided function and supplier. In other
