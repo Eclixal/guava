@@ -93,7 +93,7 @@ public abstract class ClosingFutureTest extends TestCase {
             }
           });
 
-  final ListeningExecutorService executor =
+  final IListeningExecutorService executor =
       MoreExecutors.listeningDecorator(newSingleThreadExecutor());
   final ExecutorService closingExecutor = newSingleThreadExecutor();
 
@@ -366,7 +366,7 @@ public abstract class ClosingFutureTest extends TestCase {
                   }
                 }),
             executor);
-    ListenableFuture<?> statusFuture = closingFuture.statusFuture();
+    IListenableFuture<?> statusFuture = closingFuture.statusFuture();
     waiter.awaitStarted();
     assertThat(statusFuture.isDone()).isFalse();
     waiter.awaitReturned();
@@ -384,7 +384,7 @@ public abstract class ClosingFutureTest extends TestCase {
                   }
                 }),
             executor);
-    ListenableFuture<?> statusFuture = closingFuture.statusFuture();
+    IListenableFuture<?> statusFuture = closingFuture.statusFuture();
     waiter.awaitStarted();
     assertThat(statusFuture.isDone()).isFalse();
     waiter.awaitReturned();
@@ -402,7 +402,7 @@ public abstract class ClosingFutureTest extends TestCase {
                   }
                 }),
             executor);
-    ListenableFuture<?> statusFuture = closingFuture.statusFuture();
+    IListenableFuture<?> statusFuture = closingFuture.statusFuture();
     waiter.awaitStarted();
     assertThat(statusFuture.isDone()).isFalse();
     statusFuture.cancel(true);
@@ -693,9 +693,9 @@ public abstract class ClosingFutureTest extends TestCase {
                 executor)
             .transformAsync(
                 ClosingFuture.withoutCloser(
-                    new AsyncFunction<TestCloseable, String>() {
+                    new IAsyncFunction<TestCloseable, String>() {
                       @Override
-                      public ListenableFuture<String> apply(TestCloseable v) throws Exception {
+                      public IListenableFuture<String> apply(TestCloseable v) throws Exception {
                         assertThat(v).isSameInstanceAs(closeable1);
                         assertStillOpen(closeable1);
                         return immediateFuture("value");
@@ -1498,9 +1498,9 @@ public abstract class ClosingFutureTest extends TestCase {
         closingFuture.catchingAsync(
             Exception.class,
             ClosingFuture.withoutCloser(
-                new AsyncFunction<Exception, String>() {
+                new IAsyncFunction<Exception, String>() {
                   @Override
-                  public ListenableFuture<String> apply(Exception x) throws Exception {
+                  public IListenableFuture<String> apply(Exception x) throws Exception {
                     return immediateFuture("value2");
                   }
                 }),
@@ -1659,9 +1659,9 @@ public abstract class ClosingFutureTest extends TestCase {
                 }
               },
               executor);
-      FluentFuture<Closeable> unused = closingFuture.finishToFuture();
+      FluentFutureI<Closeable> unused = closingFuture.finishToFuture();
       try {
-        FluentFuture<Closeable> unused2 = closingFuture.finishToFuture();
+        FluentFutureI<Closeable> unused2 = closingFuture.finishToFuture();
         fail("should have thrown");
       } catch (IllegalStateException expected) {
       }
@@ -1679,7 +1679,7 @@ public abstract class ClosingFutureTest extends TestCase {
               executor);
       closingFuture.finishToValueAndCloser(new NoOpValueAndCloserConsumer<>(), directExecutor());
       try {
-        FluentFuture<Closeable> unused = closingFuture.finishToFuture();
+        FluentFutureI<Closeable> unused = closingFuture.finishToFuture();
         fail("should have thrown");
       } catch (IllegalStateException expected) {
       }
@@ -1687,7 +1687,7 @@ public abstract class ClosingFutureTest extends TestCase {
 
     public void testFinishToFuture_preventsFurtherDerivation() {
       ClosingFuture<String> closingFuture = ClosingFuture.from(immediateFuture("value1"));
-      FluentFuture<String> unused = closingFuture.finishToFuture();
+      FluentFutureI<String> unused = closingFuture.finishToFuture();
       assertDerivingThrowsIllegalStateException(closingFuture);
     }
 
@@ -1762,7 +1762,7 @@ public abstract class ClosingFutureTest extends TestCase {
                 }
               },
               executor);
-      FluentFuture<Closeable> unused = closingFuture.finishToFuture();
+      FluentFutureI<Closeable> unused = closingFuture.finishToFuture();
       try {
         closingFuture.finishToValueAndCloser(
             new NoOpValueAndCloserConsumer<>(), finishToValueAndCloserExecutor);

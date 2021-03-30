@@ -21,8 +21,8 @@ import com.google.common.annotations.GwtIncompatible;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListenableFutureTask;
+import com.google.common.util.concurrent.IListenableFuture;
+import com.google.common.util.concurrent.IListenableFutureTask;
 import com.google.errorprone.annotations.CheckReturnValue;
 import java.io.Serializable;
 import java.util.Map;
@@ -95,7 +95,7 @@ public abstract class CacheLoader<K, V> {
    * @since 11.0
    */
   @GwtIncompatible // Futures
-  public ListenableFuture<V> reload(K key, V oldValue) throws Exception {
+  public IListenableFuture<V> reload(K key, V oldValue) throws Exception {
     checkNotNull(key);
     checkNotNull(oldValue);
     return Futures.immediateFuture(load(key));
@@ -193,9 +193,9 @@ public abstract class CacheLoader<K, V> {
       }
 
       @Override
-      public ListenableFuture<V> reload(final K key, final V oldValue) throws Exception {
-        ListenableFutureTask<V> task =
-            ListenableFutureTask.create(
+      public IListenableFuture<V> reload(final K key, final V oldValue) throws Exception {
+        IListenableFutureTask<V> task =
+            IListenableFutureTask.create(
                 new Callable<V>() {
                   @Override
                   public V call() throws Exception {

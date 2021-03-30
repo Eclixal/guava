@@ -25,20 +25,20 @@ import java.util.concurrent.TimeoutException;
 import junit.framework.TestCase;
 
 /**
- * Test cases for {@link SettableFuture}.
+ * Test cases for {@link SettableFutureI}.
  *
  * @author Sven Mawson
  */
 public class SettableFutureTest extends TestCase {
 
-  private SettableFuture<String> future;
+  private SettableFutureI<String> future;
   private ListenableFutureTester tester;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
-    future = SettableFuture.create();
+    future = SettableFutureI.create();
     tester = new ListenableFutureTester(future);
     tester.setUp();
   }
@@ -83,18 +83,18 @@ public class SettableFutureTest extends TestCase {
 
   /** Tests the initial state of the future. */
   public void testCreate() throws Exception {
-    SettableFuture<Integer> future = SettableFuture.create();
+    SettableFutureI<Integer> future = SettableFutureI.create();
     assertFalse(future.isDone());
     assertFalse(future.isCancelled());
   }
 
   public void testSetValue_simpleThreaded() throws Exception {
-    SettableFuture<Integer> future = SettableFuture.create();
+    SettableFutureI<Integer> future = SettableFutureI.create();
     assertTrue(future.set(42));
     // Later attempts to set the future should return false.
     assertFalse(future.set(23));
     assertFalse(future.setException(new Exception("bar")));
-    assertFalse(future.setFuture(SettableFuture.<Integer>create()));
+    assertFalse(future.setFuture(SettableFutureI.<Integer>create()));
     // Check that the future has been set properly.
     assertTrue(future.isDone());
     assertFalse(future.isCancelled());
@@ -102,13 +102,13 @@ public class SettableFutureTest extends TestCase {
   }
 
   public void testSetException() throws Exception {
-    SettableFuture<Object> future = SettableFuture.create();
+    SettableFutureI<Object> future = SettableFutureI.create();
     Exception e = new Exception("foobarbaz");
     assertTrue(future.setException(e));
     // Later attempts to set the future should return false.
     assertFalse(future.set(23));
     assertFalse(future.setException(new Exception("quux")));
-    assertFalse(future.setFuture(SettableFuture.create()));
+    assertFalse(future.setFuture(SettableFutureI.create()));
     // Check that the future has been set properly.
     assertTrue(future.isDone());
     assertFalse(future.isCancelled());
@@ -121,13 +121,13 @@ public class SettableFutureTest extends TestCase {
   }
 
   public void testSetFuture() throws Exception {
-    SettableFuture<String> future = SettableFuture.create();
-    SettableFuture<String> nested = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
+    SettableFutureI<String> nested = SettableFutureI.create();
     assertTrue(future.setFuture(nested));
     // Later attempts to set the future should return false.
     assertFalse(future.set("x"));
     assertFalse(future.setException(new Exception("bar")));
-    assertFalse(future.setFuture(SettableFuture.<String>create()));
+    assertFalse(future.setFuture(SettableFutureI.<String>create()));
     // Check that the future has been set properly.
     assertFalse(future.isDone());
     assertFalse(future.isCancelled());
@@ -148,13 +148,13 @@ public class SettableFutureTest extends TestCase {
   private static class FooChild extends Foo {}
 
   public void testSetFuture_genericsHierarchy() throws Exception {
-    SettableFuture<Foo> future = SettableFuture.create();
-    SettableFuture<FooChild> nested = SettableFuture.create();
+    SettableFutureI<Foo> future = SettableFutureI.create();
+    SettableFutureI<FooChild> nested = SettableFutureI.create();
     assertTrue(future.setFuture(nested));
     // Later attempts to set the future should return false.
     assertFalse(future.set(new Foo()));
     assertFalse(future.setException(new Exception("bar")));
-    assertFalse(future.setFuture(SettableFuture.<Foo>create()));
+    assertFalse(future.setFuture(SettableFutureI.<Foo>create()));
     // Check that the future has been set properly.
     assertFalse(future.isDone());
     assertFalse(future.isCancelled());
@@ -172,8 +172,8 @@ public class SettableFutureTest extends TestCase {
   }
 
   public void testCancel_innerCancelsAsync() throws Exception {
-    SettableFuture<Object> async = SettableFuture.create();
-    SettableFuture<Object> inner = SettableFuture.create();
+    SettableFutureI<Object> async = SettableFutureI.create();
+    SettableFutureI<Object> inner = SettableFutureI.create();
     async.setFuture(inner);
     inner.cancel(true);
     assertTrue(async.isCancelled());
@@ -186,8 +186,8 @@ public class SettableFutureTest extends TestCase {
   }
 
   public void testCancel_resultCancelsInner_interrupted() throws Exception {
-    SettableFuture<Object> async = SettableFuture.create();
-    SettableFuture<Object> inner = SettableFuture.create();
+    SettableFutureI<Object> async = SettableFutureI.create();
+    SettableFutureI<Object> inner = SettableFutureI.create();
     async.setFuture(inner);
     async.cancel(true);
     assertTrue(inner.isCancelled());
@@ -201,8 +201,8 @@ public class SettableFutureTest extends TestCase {
   }
 
   public void testCancel_resultCancelsInner() throws Exception {
-    SettableFuture<Object> async = SettableFuture.create();
-    SettableFuture<Object> inner = SettableFuture.create();
+    SettableFutureI<Object> async = SettableFutureI.create();
+    SettableFutureI<Object> inner = SettableFutureI.create();
     async.setFuture(inner);
     async.cancel(false);
     assertTrue(inner.isCancelled());
@@ -216,26 +216,26 @@ public class SettableFutureTest extends TestCase {
   }
 
   public void testCancel_beforeSet() throws Exception {
-    SettableFuture<Object> async = SettableFuture.create();
+    SettableFutureI<Object> async = SettableFutureI.create();
     async.cancel(true);
     assertFalse(async.set(42));
   }
 
   public void testCancel_multipleBeforeSetFuture_noInterruptFirst() throws Exception {
-    SettableFuture<Object> async = SettableFuture.create();
+    SettableFutureI<Object> async = SettableFutureI.create();
     async.cancel(false);
     async.cancel(true);
-    SettableFuture<Object> inner = SettableFuture.create();
+    SettableFutureI<Object> inner = SettableFutureI.create();
     assertFalse(async.setFuture(inner));
     assertTrue(inner.isCancelled());
     assertFalse(inner.wasInterrupted());
   }
 
   public void testCancel_multipleBeforeSetFuture_interruptFirst() throws Exception {
-    SettableFuture<Object> async = SettableFuture.create();
+    SettableFutureI<Object> async = SettableFutureI.create();
     async.cancel(true);
     async.cancel(false);
-    SettableFuture<Object> inner = SettableFuture.create();
+    SettableFutureI<Object> inner = SettableFutureI.create();
     assertFalse(async.setFuture(inner));
     assertTrue(inner.isCancelled());
     assertTrue(inner.wasInterrupted());

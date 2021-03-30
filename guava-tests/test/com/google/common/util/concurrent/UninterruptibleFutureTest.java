@@ -187,7 +187,7 @@ public class UninterruptibleFutureTest extends TestCase {
 
   private static void runUntimedInterruptsTest(int times)
       throws InterruptedException, ExecutionException, TimeoutException {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     FutureTask<Boolean> interruptReporter = untimedInterruptReporter(future, false);
 
     runNInterruptsTest(times, future, interruptReporter);
@@ -195,14 +195,14 @@ public class UninterruptibleFutureTest extends TestCase {
 
   private static void runTimedInterruptsTest(int times)
       throws InterruptedException, ExecutionException, TimeoutException {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     FutureTask<Boolean> interruptReporter = timedInterruptReporter(future);
 
     runNInterruptsTest(times, future, interruptReporter);
   }
 
   private static void runNInterruptsTest(
-      int times, SettableFuture<String> future, FutureTask<Boolean> interruptReporter)
+          int times, SettableFutureI<String> future, FutureTask<Boolean> interruptReporter)
       throws InterruptedException, ExecutionException, TimeoutException {
     Thread waitingThread = new Thread(interruptReporter);
     waitingThread.start();
@@ -220,7 +220,7 @@ public class UninterruptibleFutureTest extends TestCase {
    */
 
   public void testMakeUninterruptible_plainFutureSanityCheck() throws Exception {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     FutureTask<Boolean> wasInterrupted = untimedInterruptReporter(future, true);
 
     Thread waitingThread = new Thread(wasInterrupted);
@@ -238,7 +238,7 @@ public class UninterruptibleFutureTest extends TestCase {
 
   public void testMakeUninterruptible_timedGetZeroTimeoutAttempted()
       throws TimeoutException, ExecutionException {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     future.set(RESULT);
     /*
      * getUninterruptibly should call the timed get method once with a
@@ -251,7 +251,7 @@ public class UninterruptibleFutureTest extends TestCase {
 
   public void testMakeUninterruptible_timedGetNegativeTimeoutAttempted()
       throws TimeoutException, ExecutionException {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     future.set(RESULT);
     /*
      * The getUninterruptibly should call the timed get method once with a

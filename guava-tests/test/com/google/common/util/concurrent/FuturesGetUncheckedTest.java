@@ -53,7 +53,7 @@ public class FuturesGetUncheckedTest extends TestCase {
   }
 
   public void testGetUnchecked_cancelled() {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     future.cancel(true);
     try {
       getUnchecked(future);

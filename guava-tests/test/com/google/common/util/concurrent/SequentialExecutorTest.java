@@ -316,7 +316,7 @@ public class SequentialExecutorTest extends TestCase {
 
   public void testRejectedExecutionThrownWithMultipleCalls() throws Exception {
     final CountDownLatch latch = new CountDownLatch(1);
-    final SettableFuture<?> future = SettableFuture.create();
+    final SettableFutureI<?> future = SettableFutureI.create();
     final Executor delegate =
         new Executor() {
           @Override

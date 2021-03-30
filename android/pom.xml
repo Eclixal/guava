@@ -260,7 +260,7 @@
     <repository>
       <id>sonatype-nexus-staging</id>
       <name>Nexus Release Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <url>https://oss.sonatype.org/IService/local/staging/deploy/maven2/</url>
     </repository>
     <site>
       <id>guava-site</id>

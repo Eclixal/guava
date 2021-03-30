@@ -35,7 +35,6 @@ import com.google.common.cache.CacheBuilder.NullListener;
 import com.google.common.cache.CacheBuilder.OneWeigher;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.CacheLoader.UnsupportedLoadingOperationException;
-import com.google.common.cache.LocalCache.AbstractCacheSet;
 import com.google.common.collect.AbstractSequentialIterator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -43,12 +42,8 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
-import com.google.common.util.concurrent.ExecutionError;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.IListenableFuture;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import com.google.j2objc.annotations.RetainedWith;
 import com.google.j2objc.annotations.Weak;
@@ -67,7 +62,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
@@ -2275,16 +2269,16 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
         LoadingValueReference<K, V> loadingValueReference,
         CacheLoader<? super K, V> loader)
         throws ExecutionException {
-      ListenableFuture<V> loadingFuture = loadingValueReference.loadFuture(key, loader);
+      IListenableFuture<V> loadingFuture = loadingValueReference.loadFuture(key, loader);
       return getAndRecordStats(key, hash, loadingValueReference, loadingFuture);
     }
 
-    ListenableFuture<V> loadAsync(
+    IListenableFuture<V> loadAsync(
         final K key,
         final int hash,
         final LoadingValueReference<K, V> loadingValueReference,
         CacheLoader<? super K, V> loader) {
-      final ListenableFuture<V> loadingFuture = loadingValueReference.loadFuture(key, loader);
+      final IListenableFuture<V> loadingFuture = loadingValueReference.loadFuture(key, loader);
       loadingFuture.addListener(
           new Runnable() {
             @Override
@@ -2306,7 +2300,7 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
         K key,
         int hash,
         LoadingValueReference<K, V> loadingValueReference,
-        ListenableFuture<V> newValue)
+        IListenableFuture<V> newValue)
         throws ExecutionException {
       V value = null;
       try {
@@ -2357,7 +2351,7 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
         return null;
       }
 
-      ListenableFuture<V> result = loadAsync(key, hash, loadingValueReference, loader);
+      IListenableFuture<V> result = loadAsync(key, hash, loadingValueReference, loader);
       if (result.isDone()) {
         try {
           return Uninterruptibles.getUninterruptibly(result);
@@ -3469,7 +3463,7 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
     volatile ValueReference<K, V> oldValue;
 
     // TODO(fry): rename get, then extend AbstractFuture instead of containing SettableFuture
-    final SettableFuture<V> futureValue = SettableFuture.create();
+    final SettableFutureI<V> futureValue = SettableFutureI.create();
     final Stopwatch stopwatch = Stopwatch.createUnstarted();
 
     public LoadingValueReference() {
@@ -3503,7 +3497,7 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
       return futureValue.setException(t);
     }
 
-    private ListenableFuture<V> fullyFailedFuture(Throwable t) {
+    private IListenableFuture<V> fullyFailedFuture(Throwable t) {
       return Futures.immediateFailedFuture(t);
     }
 
@@ -3521,7 +3515,7 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
       // TODO(fry): could also cancel loading if we had a handle on its future
     }
 
-    public ListenableFuture<V> loadFuture(K key, CacheLoader<? super K, V> loader) {
+    public IListenableFuture<V> loadFuture(K key, CacheLoader<? super K, V> loader) {
       try {
         stopwatch.start();
         V previousValue = oldValue.get();
@@ -3529,7 +3523,7 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
           V newValue = loader.load(key);
           return set(newValue) ? futureValue : Futures.immediateFuture(newValue);
         }
-        ListenableFuture<V> newValue = loader.reload(key, previousValue);
+        IListenableFuture<V> newValue = loader.reload(key, previousValue);
         if (newValue == null) {
           return Futures.immediateFuture(null);
         }
@@ -3546,7 +3540,7 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
             },
             directExecutor());
       } catch (Throwable t) {
-        ListenableFuture<V> result = setException(t) ? futureValue : fullyFailedFuture(t);
+        IListenableFuture<V> result = setException(t) ? futureValue : fullyFailedFuture(t);
         if (t instanceof InterruptedException) {
           Thread.currentThread().interrupt();
         }

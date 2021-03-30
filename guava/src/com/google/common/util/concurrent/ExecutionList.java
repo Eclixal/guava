@@ -62,7 +62,7 @@ public final class ExecutionList {
    * execute. If execution has already begun, the listener is executed immediately.
    *
    * <p>When selecting an executor, note that {@code directExecutor} is dangerous in some cases. See
-   * the discussion in the {@link ListenableFuture#addListener ListenableFuture.addListener}
+   * the discussion in the {@link IListenableFuture#addListener ListenableFuture.addListener}
    * documentation.
    */
   public void add(Runnable runnable, Executor executor) {

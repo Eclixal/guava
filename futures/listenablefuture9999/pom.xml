@@ -13,7 +13,7 @@
   <description>
     An empty artifact that Guava depends on to signal that it is providing
     ListenableFuture -- but is also available in a second "version" that
-    contains com.google.common.util.concurrent.ListenableFuture class, without
+    contains com.google.common.util.concurrent.IListenableFuture class, without
     any other Guava classes. The idea is:
 
     - If users want only ListenableFuture, they depend on listenablefuture-1.0.

@@ -20,7 +20,7 @@ import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.IListenableFuture;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -142,7 +142,7 @@ class TestingCacheLoaders {
 
     @GwtIncompatible // reload
     @Override
-    public ListenableFuture<Integer> reload(Integer key, Integer oldValue) {
+    public IListenableFuture<Integer> reload(Integer key, Integer oldValue) {
       countReload.incrementAndGet();
       return Futures.immediateFuture(oldValue + 1);
     }

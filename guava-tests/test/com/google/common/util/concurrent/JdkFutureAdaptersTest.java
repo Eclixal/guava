@@ -44,8 +44,8 @@ public class JdkFutureAdaptersTest extends TestCase {
   private static final String DATA1 = "data";
 
   public void testListenInPoolThreadReturnsSameFuture() throws Exception {
-    ListenableFuture<String> listenableFuture = immediateFuture(DATA1);
-    assertSame(listenableFuture, listenInPoolThread(listenableFuture));
+    IListenableFuture<String> IListenableFuture = immediateFuture(DATA1);
+    assertSame(IListenableFuture, listenInPoolThread(IListenableFuture));
   }
 
   private static class SingleCallListener implements Runnable {
@@ -79,25 +79,25 @@ public class JdkFutureAdaptersTest extends TestCase {
     NonListenableSettableFuture<String> abstractFuture = NonListenableSettableFuture.create();
     abstractFuture.set(DATA1);
     ExecutorSpy spy = new ExecutorSpy(directExecutor());
-    ListenableFuture<String> listenableFuture = listenInPoolThread(abstractFuture, spy);
+    IListenableFuture<String> IListenableFuture = listenInPoolThread(abstractFuture, spy);
 
     SingleCallListener singleCallListener = new SingleCallListener();
     singleCallListener.expectCall();
 
     assertFalse(spy.wasExecuted);
     assertFalse(singleCallListener.wasCalled());
-    assertTrue(listenableFuture.isDone()); // We call AbstractFuture#set above.
+    assertTrue(IListenableFuture.isDone()); // We call AbstractFuture#set above.
 
     // #addListener() will run the listener immediately because the Future is
     // already finished (we explicitly set the result of it above).
-    listenableFuture.addListener(singleCallListener, directExecutor());
-    assertEquals(DATA1, listenableFuture.get());
+    IListenableFuture.addListener(singleCallListener, directExecutor());
+    assertEquals(DATA1, IListenableFuture.get());
 
     // 'spy' should have been ignored since 'abstractFuture' was done before
     // a listener was added.
     assertFalse(spy.wasExecuted);
     assertTrue(singleCallListener.wasCalled());
-    assertTrue(listenableFuture.isDone());
+    assertTrue(IListenableFuture.isDone());
   }
 
 
@@ -106,23 +106,23 @@ public class JdkFutureAdaptersTest extends TestCase {
         newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build());
     NonListenableSettableFuture<String> abstractFuture = NonListenableSettableFuture.create();
     ExecutorSpy spy = new ExecutorSpy(executorService);
-    ListenableFuture<String> listenableFuture = listenInPoolThread(abstractFuture, spy);
+    IListenableFuture<String> IListenableFuture = listenInPoolThread(abstractFuture, spy);
 
     SingleCallListener singleCallListener = new SingleCallListener();
     singleCallListener.expectCall();
 
     assertFalse(spy.wasExecuted);
     assertFalse(singleCallListener.wasCalled());
-    assertFalse(listenableFuture.isDone());
+    assertFalse(IListenableFuture.isDone());
 
-    listenableFuture.addListener(singleCallListener, executorService);
+    IListenableFuture.addListener(singleCallListener, executorService);
     abstractFuture.set(DATA1);
-    assertEquals(DATA1, listenableFuture.get());
+    assertEquals(DATA1, IListenableFuture.get());
     singleCallListener.waitForCall();
 
     assertTrue(spy.wasExecuted);
     assertTrue(singleCallListener.wasCalled());
-    assertTrue(listenableFuture.isDone());
+    assertTrue(IListenableFuture.isDone());
   }
 
 
@@ -142,15 +142,15 @@ public class JdkFutureAdaptersTest extends TestCase {
           }
         };
     NonListenableSettableFuture<String> abstractFuture = NonListenableSettableFuture.create();
-    ListenableFuture<String> listenableFuture = listenInPoolThread(abstractFuture, executorService);
+    IListenableFuture<String> IListenableFuture = listenInPoolThread(abstractFuture, executorService);
 
     SingleCallListener singleCallListener = new SingleCallListener();
     singleCallListener.expectCall();
 
     assertFalse(singleCallListener.wasCalled());
-    assertFalse(listenableFuture.isDone());
+    assertFalse(IListenableFuture.isDone());
 
-    listenableFuture.addListener(singleCallListener, directExecutor());
+    IListenableFuture.addListener(singleCallListener, directExecutor());
     /*
      * Don't shut down until the listenInPoolThread task has been accepted to
      * run. We want to see what happens when it's interrupted, not when it's
@@ -159,11 +159,11 @@ public class JdkFutureAdaptersTest extends TestCase {
     submitSuccessful.await();
     executorService.shutdownNow();
     abstractFuture.set(DATA1);
-    assertEquals(DATA1, listenableFuture.get());
+    assertEquals(DATA1, IListenableFuture.get());
     singleCallListener.waitForCall();
 
     assertTrue(singleCallListener.wasCalled());
-    assertTrue(listenableFuture.isDone());
+    assertTrue(IListenableFuture.isDone());
   }
 
   /** A Future that doesn't implement ListenableFuture, useful for testing listenInPoolThread. */
@@ -172,7 +172,7 @@ public class JdkFutureAdaptersTest extends TestCase {
       return new NonListenableSettableFuture<V>();
     }
 
-    final SettableFuture<V> delegate = SettableFuture.create();
+    final SettableFutureI<V> delegate = SettableFutureI.create();
 
     @Override
     protected Future<V> delegate() {
@@ -247,8 +247,8 @@ public class JdkFutureAdaptersTest extends TestCase {
     assertFalse(
         "Can't test the main listenInPoolThread path "
             + "if the input is already a ListenableFuture",
-        ListenableFuture.class.isInstance(input));
-    ListenableFuture<String> listenable = listenInPoolThread(input);
+        IListenableFuture.class.isInstance(input));
+    IListenableFuture<String> listenable = listenInPoolThread(input);
     /*
      * This will occur before the waiting get() in the
      * listenInPoolThread-spawned thread completes:

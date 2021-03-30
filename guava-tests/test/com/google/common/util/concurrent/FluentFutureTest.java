@@ -27,41 +27,41 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.base.Function;
-import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
+import com.google.common.util.concurrent.ForwardingIListenableFuture.SimpleForwardingIListenableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
 import junit.framework.TestCase;
 
 /**
- * Tests for {@link FluentFuture}. The tests cover only the basics for the API. The actual logic is
+ * Tests for {@link FluentFutureI}. The tests cover only the basics for the API. The actual logic is
  * tested in {@link FuturesTest}.
  */
 @GwtCompatible(emulated = true)
 public class FluentFutureTest extends TestCase {
   public void testFromFluentFuture() {
-    FluentFuture<String> f = FluentFuture.from(SettableFuture.<String>create());
-    assertThat(FluentFuture.from(f)).isSameInstanceAs(f);
+    FluentFutureI<String> f = FluentFutureI.from(SettableFutureI.<String>create());
+    assertThat(FluentFutureI.from(f)).isSameInstanceAs(f);
   }
 
   public void testFromFluentFuturePassingAsNonFluent() {
-    ListenableFuture<String> f = FluentFuture.from(SettableFuture.<String>create());
-    assertThat(FluentFuture.from(f)).isSameInstanceAs(f);
+    IListenableFuture<String> f = FluentFutureI.from(SettableFutureI.<String>create());
+    assertThat(FluentFutureI.from(f)).isSameInstanceAs(f);
   }
 
   public void testFromNonFluentFuture() throws Exception {
-    ListenableFuture<String> f =
-        new SimpleForwardingListenableFuture<String>(immediateFuture("a")) {};
-    verify(!(f instanceof FluentFuture));
-    assertThat(FluentFuture.from(f).get()).isEqualTo("a");
+    IListenableFuture<String> f =
+        new SimpleForwardingIListenableFuture<String>(immediateFuture("a")) {};
+    verify(!(f instanceof FluentFutureI));
+    assertThat(FluentFutureI.from(f).get()).isEqualTo("a");
     // TODO(cpovirk): Test forwarding more extensively.
   }
 
   public void testAddCallback() {
-    FluentFuture<String> f = FluentFuture.from(immediateFuture("a"));
+    FluentFutureI<String> f = FluentFutureI.from(immediateFuture("a"));
     final boolean[] called = new boolean[1];
     f.addCallback(
-        new FutureCallback<String>() {
+        new IFutureCallback<String>() {
           @Override
           public void onSuccess(String result) {
             called[0] = true;
@@ -75,8 +75,8 @@ public class FluentFutureTest extends TestCase {
   }
 
   public void testCatching() throws Exception {
-    FluentFuture<?> f =
-        FluentFuture.from(immediateFailedFuture(new RuntimeException()))
+    FluentFutureI<?> f =
+        FluentFutureI.from(immediateFailedFuture(new RuntimeException()))
             .catching(
                 Throwable.class,
                 new Function<Throwable, Class<?>>() {
@@ -90,13 +90,13 @@ public class FluentFutureTest extends TestCase {
   }
 
   public void testCatchingAsync() throws Exception {
-    FluentFuture<?> f =
-        FluentFuture.from(immediateFailedFuture(new RuntimeException()))
+    FluentFutureI<?> f =
+        FluentFutureI.from(immediateFailedFuture(new RuntimeException()))
             .catchingAsync(
                 Throwable.class,
-                new AsyncFunction<Throwable, Class<?>>() {
+                new IAsyncFunction<Throwable, Class<?>>() {
                   @Override
-                  public ListenableFuture<Class<?>> apply(Throwable input) {
+                  public IListenableFuture<Class<?>> apply(Throwable input) {
                     return Futures.<Class<?>>immediateFuture(input.getClass());
                   }
                 },
@@ -105,8 +105,8 @@ public class FluentFutureTest extends TestCase {
   }
 
   public void testTransform() throws Exception {
-    FluentFuture<Integer> f =
-        FluentFuture.from(immediateFuture(1))
+    FluentFutureI<Integer> f =
+        FluentFutureI.from(immediateFuture(1))
             .transform(
                 new Function<Integer, Integer>() {
                   @Override
@@ -119,12 +119,12 @@ public class FluentFutureTest extends TestCase {
   }
 
   public void testTransformAsync() throws Exception {
-    FluentFuture<Integer> f =
-        FluentFuture.from(immediateFuture(1))
+    FluentFutureI<Integer> f =
+        FluentFutureI.from(immediateFuture(1))
             .transformAsync(
-                new AsyncFunction<Integer, Integer>() {
+                new IAsyncFunction<Integer, Integer>() {
                   @Override
-                  public ListenableFuture<Integer> apply(Integer input) {
+                  public IListenableFuture<Integer> apply(Integer input) {
                     return immediateFuture(input + 1);
                   }
                 },
@@ -137,8 +137,8 @@ public class FluentFutureTest extends TestCase {
   public void testWithTimeout() throws Exception {
     ScheduledExecutorService executor = newScheduledThreadPool(1);
     try {
-      FluentFuture<?> f =
-          FluentFuture.from(SettableFuture.create()).withTimeout(0, SECONDS, executor);
+      FluentFutureI<?> f =
+          FluentFutureI.from(SettableFutureI.create()).withTimeout(0, SECONDS, executor);
       try {
         f.get();
         fail();

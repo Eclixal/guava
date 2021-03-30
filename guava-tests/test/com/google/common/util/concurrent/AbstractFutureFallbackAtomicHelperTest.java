@@ -38,7 +38,7 @@ import junit.framework.TestSuite;
  *   <li>SynchronizedHelper: uses {@code synchronized} blocks for synchronization
  * </ul>
  *
- * To force selection of our fallback strategies we load {@link AbstractFuture} (and all of {@code
+ * To force selection of our fallback strategies we load {@link AbstractFutureI} (and all of {@code
  * com.google.common.util.concurrent}) in degenerate class loaders which make certain platform
  * classes unavailable. Then we construct a test suite so we can run the normal AbstractFutureTest
  * test methods in these degenerate classloaders.
@@ -113,14 +113,14 @@ public class AbstractFutureFallbackAtomicHelperTest extends TestCase {
   private void checkHelperVersion(ClassLoader classLoader, String expectedHelperClassName)
       throws Exception {
     // Make sure we are actually running with the expected helper implementation
-    Class<?> abstractFutureClass = classLoader.loadClass(AbstractFuture.class.getName());
+    Class<?> abstractFutureClass = classLoader.loadClass(AbstractFutureI.class.getName());
     Field helperField = abstractFutureClass.getDeclaredField("ATOMIC_HELPER");
     helperField.setAccessible(true);
     assertEquals(expectedHelperClassName, helperField.get(null).getClass().getSimpleName());
   }
 
   private static ClassLoader getClassLoader(final Set<String> disallowedClassNames) {
-    final String concurrentPackage = SettableFuture.class.getPackage().getName();
+    final String concurrentPackage = SettableFutureI.class.getPackage().getName();
     ClassLoader classLoader = AbstractFutureFallbackAtomicHelperTest.class.getClassLoader();
     // we delegate to the current classloader so both loaders agree on classes like TestCase
     return new URLClassLoader(ClassPathUtil.getClassPathUrls(), classLoader) {

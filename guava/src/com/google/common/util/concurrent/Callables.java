@@ -44,23 +44,23 @@ public final class Callables {
   }
 
   /**
-   * Creates an {@link AsyncCallable} from a {@link Callable}.
+   * Creates an {@link IAsyncCallable} from a {@link Callable}.
    *
-   * <p>The {@link AsyncCallable} returns the {@link ListenableFuture} resulting from {@link
-   * ListeningExecutorService#submit(Callable)}.
+   * <p>The {@link IAsyncCallable} returns the {@link IListenableFuture} resulting from {@link
+   * IListeningExecutorService#submit(Callable)}.
    *
    * @since 20.0
    */
   @Beta
   @GwtIncompatible
-  public static <T> AsyncCallable<T> asAsyncCallable(
-      final Callable<T> callable, final ListeningExecutorService listeningExecutorService) {
+  public static <T> IAsyncCallable<T> asAsyncCallable(
+      final Callable<T> callable, final IListeningExecutorService IListeningExecutorService) {
     checkNotNull(callable);
-    checkNotNull(listeningExecutorService);
-    return new AsyncCallable<T>() {
+    checkNotNull(IListeningExecutorService);
+    return new IAsyncCallable<T>() {
       @Override
-      public ListenableFuture<T> call() throws Exception {
-        return listeningExecutorService.submit(callable);
+      public IListenableFuture<T> call() throws Exception {
+        return IListeningExecutorService.submit(callable);
       }
     };
   }

@@ -37,16 +37,16 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /** Emulation for AbstractFuture in GWT. */
 public abstract class AbstractFuture<V> extends InternalFutureFailureAccess
-    implements ListenableFuture<V> {
+    implements IListenableFuture<V> {
 
   /**
    * Tag interface marking trusted subclasses. This enables some optimizations. The implementation
    * of this interface must also be an AbstractFuture and must not override or expose for overriding
    * any of the public methods of ListenableFuture.
    */
-  interface Trusted<V> extends ListenableFuture<V> {}
+  interface Trusted<V> extends IListenableFuture<V> {}
 
-  abstract static class TrustedFuture<V> extends AbstractFuture<V> implements Trusted<V> {
+  abstract static class TrustedFuture<V> extends AbstractFutureI<V> implements Trusted<V> {
     @Override
     public final V get() throws InterruptedException, ExecutionException {
       return super.get();
@@ -79,7 +79,7 @@ public abstract class AbstractFuture<V> extends InternalFutureFailureAccess
     }
   }
 
-  private static final Logger log = Logger.getLogger(AbstractFuture.class.getName());
+  private static final Logger log = Logger.getLogger(AbstractFutureI.class.getName());
 
   private State state;
   private V value;
@@ -180,7 +180,7 @@ public abstract class AbstractFuture<V> extends InternalFutureFailureAccess
     notifyAndClearListeners();
   }
 
-  protected boolean setFuture(ListenableFuture<? extends V> future) {
+  protected boolean setFuture(IListenableFuture<? extends V> future) {
     checkNotNull(future);
 
     // If this future is already cancelled, cancel the delegate.
@@ -380,9 +380,9 @@ public abstract class AbstractFuture<V> extends InternalFutureFailureAccess
   }
 
   private final class SetFuture implements Runnable {
-    final ListenableFuture<? extends V> delegate;
+    final IListenableFuture<? extends V> delegate;
 
-    SetFuture(ListenableFuture<? extends V> delegate) {
+    SetFuture(IListenableFuture<? extends V> delegate) {
       this.delegate = delegate;
     }
 
@@ -392,8 +392,8 @@ public abstract class AbstractFuture<V> extends InternalFutureFailureAccess
         return;
       }
 
-      if (delegate instanceof AbstractFuture) {
-        AbstractFuture<? extends V> other = (AbstractFuture<? extends V>) delegate;
+      if (delegate instanceof AbstractFutureI) {
+        AbstractFutureI<? extends V> other = (AbstractFutureI<? extends V>) delegate;
         value = other.value;
         throwable = other.throwable;
         // don't copy the mayInterruptIfRunning bit, for consistency with the server, to ensure that

@@ -43,7 +43,7 @@ public interface ListenableFuture<V> extends Future<V>, Thenable<V> {
             (resolve, reject) -> {
               Futures.addCallback(
                   this,
-                  new FutureCallback<V>() {
+                  new IFutureCallback<V>() {
                     @Override
                     public void onSuccess(V value) {
                       resolve.onInvoke(value);

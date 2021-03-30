@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Serializes execution of tasks, somewhat like an "asynchronous {@code synchronized} block." Each
  * {@linkplain #submit enqueued} callable will not be submitted to its associated executor until the
- * previous callable has returned -- and, if the previous callable was an {@link AsyncCallable}, not
+ * previous callable has returned -- and, if the previous callable was an {@link IAsyncCallable}, not
  * until the {@code Future} it returned is {@linkplain Future#isDone done} (successful, failed, or
  * cancelled).
  *
@@ -88,7 +88,7 @@ public final class ExecutionSequencer {
   }
 
   /** This reference acts as a pointer tracking the head of a linked list of ListenableFutures. */
-  private final AtomicReference<ListenableFuture<Void>> ref =
+  private final AtomicReference<IListenableFuture<Void>> ref =
       new AtomicReference<>(immediateVoidFuture());
 
   private ThreadConfinedTaskQueue latestTaskQueue = new ThreadConfinedTaskQueue();
@@ -136,13 +136,13 @@ public final class ExecutionSequencer {
    * execute, but if the output future is cancelled before {@link Callable#call()} is invoked,
    * {@link Callable#call()} will not be invoked.
    */
-  public <T> ListenableFuture<T> submit(final Callable<T> callable, Executor executor) {
+  public <T> IListenableFuture<T> submit(final Callable<T> callable, Executor executor) {
     checkNotNull(callable);
     checkNotNull(executor);
     return submitAsync(
-        new AsyncCallable<T>() {
+        new IAsyncCallable<T>() {
           @Override
-          public ListenableFuture<T> call() throws Exception {
+          public IListenableFuture<T> call() throws Exception {
             return immediateFuture(callable.call());
           }
 
@@ -159,17 +159,17 @@ public final class ExecutionSequencer {
    *
    * <p>Cancellation does not propagate from the output future to the future returned from {@code
    * callable} or a callable that has begun to execute, but if the output future is cancelled before
-   * {@link AsyncCallable#call()} is invoked, {@link AsyncCallable#call()} will not be invoked.
+   * {@link IAsyncCallable#call()} is invoked, {@link IAsyncCallable#call()} will not be invoked.
    */
-  public <T> ListenableFuture<T> submitAsync(
-      final AsyncCallable<T> callable, final Executor executor) {
+  public <T> IListenableFuture<T> submitAsync(
+          final IAsyncCallable<T> callable, final Executor executor) {
     checkNotNull(callable);
     checkNotNull(executor);
     final TaskNonReentrantExecutor taskExecutor = new TaskNonReentrantExecutor(executor, this);
-    final AsyncCallable<T> task =
-        new AsyncCallable<T>() {
+    final IAsyncCallable<T> task =
+        new IAsyncCallable<T>() {
           @Override
-          public ListenableFuture<T> call() throws Exception {
+          public IListenableFuture<T> call() throws Exception {
             if (!taskExecutor.trySetStarted()) {
               return immediateCancelledFuture();
             }
@@ -192,15 +192,15 @@ public final class ExecutionSequencer {
      * have completed - namely after oldFuture is done, and taskFuture has either completed or been
      * cancelled before the callable started execution.
      */
-    final SettableFuture<Void> newFuture = SettableFuture.create();
+    final SettableFutureI<Void> newFuture = SettableFutureI.create();
 
-    final ListenableFuture<Void> oldFuture = ref.getAndSet(newFuture);
+    final IListenableFuture<Void> oldFuture = ref.getAndSet(newFuture);
 
     // Invoke our task once the previous future completes.
-    final TrustedListenableFutureTask<T> taskFuture = TrustedListenableFutureTask.create(task);
+    final TrustedIListenableFutureTask<T> taskFuture = TrustedIListenableFutureTask.create(task);
     oldFuture.addListener(taskFuture, taskExecutor);
 
-    final ListenableFuture<T> outputFuture = Futures.nonCancellationPropagating(taskFuture);
+    final IListenableFuture<T> outputFuture = Futures.nonCancellationPropagating(taskFuture);
 
     // newFuture's lifetime is determined by taskFuture, which can't complete before oldFuture
     // unless taskFuture is cancelled, in which case it falls back to oldFuture. This ensures that

@@ -19,11 +19,12 @@ package com.google.common.testing;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.testing.GcFinalization.FinalizationPredicate;
-import com.google.common.util.concurrent.SettableFuture;
+import com.google.common.util.concurrent.SettableFutureI;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import junit.framework.TestCase;
 
 /**
@@ -54,7 +55,7 @@ public class GcFinalizationTest extends TestCase {
   }
 
   public void testAwaitDone_Future() {
-    final SettableFuture<Void> future = SettableFuture.create();
+    final SettableFutureI<Void> future = SettableFutureI.create();
     Object x =
         new Object() {
           @Override
@@ -69,7 +70,7 @@ public class GcFinalizationTest extends TestCase {
   }
 
   public void testAwaitDone_Future_Cancel() {
-    final SettableFuture<Void> future = SettableFuture.create();
+    final SettableFutureI<Void> future = SettableFutureI.create();
     Object x =
         new Object() {
           @Override
@@ -161,7 +162,7 @@ public class GcFinalizationTest extends TestCase {
   public void testAwaitDone_Future_Interrupted_Interrupted() {
     Interruptenator interruptenator = new Interruptenator(Thread.currentThread());
     try {
-      final SettableFuture<Void> future = SettableFuture.create();
+      final SettableFutureI<Void> future = SettableFutureI.create();
       try {
         GcFinalization.awaitDone(future);
         fail("should throw");

@@ -38,7 +38,7 @@ import com.google.common.testing.TestLogHandler;
 import com.google.common.util.concurrent.Callables;
 import com.google.common.util.concurrent.ExecutionError;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.IListenableFuture;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -168,7 +168,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFuture(two);
           }
         };
@@ -216,7 +216,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFuture(two);
           }
         };
@@ -278,7 +278,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFuture(two);
           }
         };
@@ -675,7 +675,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return null;
           }
         };
@@ -721,7 +721,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFuture(null);
           }
         };
@@ -768,7 +768,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFuture(null);
           }
         };
@@ -961,7 +961,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             throw e;
           }
         };
@@ -1008,7 +1008,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFailedFuture(e);
           }
         };
@@ -1056,7 +1056,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFailedFuture(e);
           }
         };
@@ -1286,7 +1286,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) throws Exception {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) throws Exception {
             throw e;
           }
         };
@@ -1333,7 +1333,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFailedFuture(e);
           }
         };
@@ -1381,7 +1381,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFailedFuture(e);
           }
         };
@@ -1560,7 +1560,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) throws Exception {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) throws Exception {
             throw e;
           }
         };
@@ -1607,7 +1607,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFailedFuture(e);
           }
         };
@@ -1655,7 +1655,7 @@ public class CacheLoadingTest extends TestCase {
           }
 
           @Override
-          public ListenableFuture<Object> reload(Object key, Object oldValue) {
+          public IListenableFuture<Object> reload(Object key, Object oldValue) {
             return Futures.immediateFailedFuture(e);
           }
         };
