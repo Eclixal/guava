@@ -429,7 +429,6 @@ public final class BigIntegerMath {
       if (normalizedBits + productBits >= Long.SIZE) {
         bignums.add(BigInteger.valueOf(product));
         product = 1;
-        productBits = 0;
       }
       product *= normalizedNum;
       productBits = LongMath.log2(product, FLOOR) + 1;
