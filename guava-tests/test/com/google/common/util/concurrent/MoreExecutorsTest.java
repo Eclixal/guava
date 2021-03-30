@@ -90,7 +90,7 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
 
   public void testDirectExecutorServiceServiceInThreadExecution() throws Exception {
-    final ListeningExecutorService executor = newDirectExecutorService();
+    final IListeningExecutorService executor = newDirectExecutorService();
     final ThreadLocal<Integer> threadLocalCount =
         new ThreadLocal<Integer>() {
           @Override
@@ -124,7 +124,7 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
     otherThread.start();
 
-    ListenableFuture<?> future = executor.submit(incrementTask);
+    IListenableFuture<?> future = executor.submit(incrementTask);
     assertTrue(future.isDone());
     assertListenerRunImmediately(future);
     assertEquals(1, threadLocalCount.get().intValue());
@@ -319,22 +319,22 @@ public class MoreExecutorsTest extends JSR166TestCase {
   }
 
   public <T> void testListeningExecutorServiceInvokeAllJavadocCodeCompiles() throws Exception {
-    ListeningExecutorService executor = newDirectExecutorService();
+    IListeningExecutorService executor = newDirectExecutorService();
     List<Callable<T>> tasks = ImmutableList.of();
     List<? extends Future<?>> unused = executor.invokeAll(tasks);
   }
 
   public void testListeningDecorator() throws Exception {
-    ListeningExecutorService service = listeningDecorator(newDirectExecutorService());
+    IListeningExecutorService service = listeningDecorator(newDirectExecutorService());
     assertSame(service, listeningDecorator(service));
     List<Callable<String>> callables = ImmutableList.of(Callables.returning("x"));
     List<Future<String>> results;
 
     results = service.invokeAll(callables);
-    assertThat(getOnlyElement(results)).isInstanceOf(TrustedListenableFutureTask.class);
+    assertThat(getOnlyElement(results)).isInstanceOf(TrustedIListenableFutureTask.class);
 
     results = service.invokeAll(callables, 1, SECONDS);
-    assertThat(getOnlyElement(results)).isInstanceOf(TrustedListenableFutureTask.class);
+    assertThat(getOnlyElement(results)).isInstanceOf(TrustedIListenableFutureTask.class);
 
     /*
      * TODO(cpovirk): move ForwardingTestCase somewhere common, and use it to
@@ -344,7 +344,7 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
   public void testListeningDecorator_noWrapExecuteTask() {
     ExecutorService delegate = mock(ExecutorService.class);
-    ListeningExecutorService service = listeningDecorator(delegate);
+    IListeningExecutorService service = listeningDecorator(delegate);
     Runnable task =
         new Runnable() {
           @Override
@@ -364,8 +364,8 @@ public class MoreExecutorsTest extends JSR166TestCase {
             completed.countDown();
           }
         };
-    ListeningScheduledExecutorService service = listeningDecorator(delegate);
-    ListenableFuture<Integer> future =
+    IListeningScheduledExecutorService service = listeningDecorator(delegate);
+    IListenableFuture<Integer> future =
         service.schedule(Callables.returning(42), 1, TimeUnit.MILLISECONDS);
 
     /*
@@ -383,9 +383,9 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
   public void testListeningDecorator_scheduleFailure() throws Exception {
     ScheduledThreadPoolExecutor delegate = new ScheduledThreadPoolExecutor(1);
-    ListeningScheduledExecutorService service = listeningDecorator(delegate);
+    IListeningScheduledExecutorService service = listeningDecorator(delegate);
     RuntimeException ex = new RuntimeException();
-    ListenableFuture<?> future =
+    IListenableFuture<?> future =
         service.schedule(new ThrowingRunnable(0, ex), 1, TimeUnit.MILLISECONDS);
     assertExecutionException(future, ex);
     assertEquals(0, delegate.getQueue().size());
@@ -394,10 +394,10 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
   public void testListeningDecorator_schedulePeriodic() throws Exception {
     ScheduledThreadPoolExecutor delegate = new ScheduledThreadPoolExecutor(1);
-    ListeningScheduledExecutorService service = listeningDecorator(delegate);
+    IListeningScheduledExecutorService service = listeningDecorator(delegate);
     RuntimeException ex = new RuntimeException();
 
-    ListenableFuture<?> future;
+    IListenableFuture<?> future;
 
     ThrowingRunnable runnable = new ThrowingRunnable(5, ex);
     future = service.scheduleAtFixedRate(runnable, 1, 1, TimeUnit.MILLISECONDS);
@@ -416,8 +416,8 @@ public class MoreExecutorsTest extends JSR166TestCase {
   public void testListeningDecorator_cancelled() throws Exception {
     ScheduledThreadPoolExecutor delegate = new ScheduledThreadPoolExecutor(1);
     BlockingQueue<?> delegateQueue = delegate.getQueue();
-    ListeningScheduledExecutorService service = listeningDecorator(delegate);
-    ListenableFuture<?> future;
+    IListeningScheduledExecutorService service = listeningDecorator(delegate);
+    IListenableFuture<?> future;
     ScheduledFuture<?> delegateFuture;
 
     Runnable runnable =
@@ -479,7 +479,7 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
   /** invokeAny(null) throws NPE */
   public void testInvokeAnyImpl_nullTasks() throws Exception {
-    ListeningExecutorService e = newDirectExecutorService();
+    IListeningExecutorService e = newDirectExecutorService();
     try {
       invokeAnyImpl(e, null, false, 0, TimeUnit.NANOSECONDS);
       fail();
@@ -491,7 +491,7 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
   /** invokeAny(empty collection) throws IAE */
   public void testInvokeAnyImpl_emptyTasks() throws Exception {
-    ListeningExecutorService e = newDirectExecutorService();
+    IListeningExecutorService e = newDirectExecutorService();
     try {
       invokeAnyImpl(e, new ArrayList<Callable<String>>(), false, 0, TimeUnit.NANOSECONDS);
       fail();
@@ -503,7 +503,7 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
   /** invokeAny(c) throws NPE if c has null elements */
   public void testInvokeAnyImpl_nullElement() throws Exception {
-    ListeningExecutorService e = newDirectExecutorService();
+    IListeningExecutorService e = newDirectExecutorService();
     List<Callable<Integer>> l = new ArrayList<>();
     l.add(
         new Callable<Integer>() {
@@ -524,7 +524,7 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
   /** invokeAny(c) throws ExecutionException if no task in c completes */
   public void testInvokeAnyImpl_noTaskCompletes() throws Exception {
-    ListeningExecutorService e = newDirectExecutorService();
+    IListeningExecutorService e = newDirectExecutorService();
     List<Callable<String>> l = new ArrayList<>();
     l.add(new NPETask());
     try {
@@ -539,7 +539,7 @@ public class MoreExecutorsTest extends JSR166TestCase {
 
   /** invokeAny(c) returns result of some task in c if at least one completes */
   public void testInvokeAnyImpl() throws Exception {
-    ListeningExecutorService e = newDirectExecutorService();
+    IListeningExecutorService e = newDirectExecutorService();
     try {
       List<Callable<String>> l = new ArrayList<>();
       l.add(new StringTask());
@@ -551,7 +551,7 @@ public class MoreExecutorsTest extends JSR166TestCase {
     }
   }
 
-  private static void assertListenerRunImmediately(ListenableFuture<?> future) {
+  private static void assertListenerRunImmediately(IListenableFuture<?> future) {
     CountingRunnable listener = new CountingRunnable();
     future.addListener(listener, directExecutor());
     assertEquals(1, listener.count);

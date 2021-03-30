@@ -21,7 +21,7 @@ import java.util.concurrent.Executor;
 
 /**
  * Hidden superclass of {@link Futures} that provides us a place to declare special GWT versions of
- * the {@link Futures#catching(ListenableFuture, Class, com.google.common.base.Function)
+ * the {@link Futures#catching(IListenableFuture, Class, com.google.common.base.Function)
  * Futures.catching} family of methods. Those versions have slightly different signatures.
  */
 abstract class GwtFuturesCatchingSpecialization {
@@ -33,15 +33,15 @@ abstract class GwtFuturesCatchingSpecialization {
 
   /** @deprecated Use the overload that requires an executor. */
   @Deprecated
-  public static <V> ListenableFuture<V> catching(
-      ListenableFuture<? extends V> input,
+  public static <V> IListenableFuture<V> catching(
+      IListenableFuture<? extends V> input,
       Class<Throwable> exceptionType,
       Function<? super Throwable, ? extends V> fallback) {
     return AbstractCatchingFuture.create(input, exceptionType, fallback, directExecutor());
   }
 
-  public static <V> ListenableFuture<V> catching(
-      ListenableFuture<? extends V> input,
+  public static <V> IListenableFuture<V> catching(
+      IListenableFuture<? extends V> input,
       Class<Throwable> exceptionType,
       Function<? super Throwable, ? extends V> fallback,
       Executor executor) {
@@ -50,17 +50,17 @@ abstract class GwtFuturesCatchingSpecialization {
 
   /** @deprecated Use the overload that requires an executor. */
   @Deprecated
-  public static <V> ListenableFuture<V> catchingAsync(
-      ListenableFuture<? extends V> input,
+  public static <V> IListenableFuture<V> catchingAsync(
+      IListenableFuture<? extends V> input,
       Class<Throwable> exceptionType,
-      AsyncFunction<? super Throwable, ? extends V> fallback) {
+      IAsyncFunction<? super Throwable, ? extends V> fallback) {
     return AbstractCatchingFuture.create(input, exceptionType, fallback, directExecutor());
   }
 
-  public static <V> ListenableFuture<V> catchingAsync(
-      ListenableFuture<? extends V> input,
+  public static <V> IListenableFuture<V> catchingAsync(
+      IListenableFuture<? extends V> input,
       Class<Throwable> exceptionType,
-      AsyncFunction<? super Throwable, ? extends V> fallback,
+      IAsyncFunction<? super Throwable, ? extends V> fallback,
       Executor executor) {
     return AbstractCatchingFuture.create(input, exceptionType, fallback, executor);
   }

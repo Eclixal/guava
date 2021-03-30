@@ -20,11 +20,9 @@ import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Longs;
-import com.google.common.util.concurrent.AbstractFuture;
-import com.google.common.util.concurrent.AbstractListeningExecutorService;
-import com.google.common.util.concurrent.ListenableScheduledFuture;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.IListenableScheduledFuture;
+
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
@@ -50,8 +48,8 @@ public final class TestingExecutors {
    * of any {@link ScheduledFuture} returned by the executor will always return the max long value
    * instead of the time until the user-specified delay.
    */
-  public static ListeningScheduledExecutorService noOpScheduledExecutor() {
-    return new NoOpScheduledExecutorService();
+  public static IListeningScheduledExecutorService noOpScheduledExecutor() {
+    return new NoOpScheduledExecutorServiceI();
   }
 
   /**
@@ -88,12 +86,12 @@ public final class TestingExecutors {
    *
    * @since 15.0
    */
-  public static SameThreadScheduledExecutorService sameThreadScheduledExecutor() {
-    return new SameThreadScheduledExecutorService();
+  public static SameThreadScheduledExecutorServiceI sameThreadScheduledExecutor() {
+    return new SameThreadScheduledExecutorServiceI();
   }
 
-  private static final class NoOpScheduledExecutorService extends AbstractListeningExecutorService
-      implements ListeningScheduledExecutorService {
+  private static final class NoOpScheduledExecutorServiceI extends AbstractIListeningExecutorService
+      implements IListeningScheduledExecutorService {
 
     private volatile boolean shutdown;
 
@@ -127,33 +125,33 @@ public final class TestingExecutors {
     public void execute(Runnable runnable) {}
 
     @Override
-    public <V> ListenableScheduledFuture<V> schedule(
+    public <V> IListenableScheduledFuture<V> schedule(
         Callable<V> callable, long delay, TimeUnit unit) {
-      return NeverScheduledFuture.create();
+      return NeverScheduledFutureI.create();
     }
 
     @Override
-    public ListenableScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-      return NeverScheduledFuture.create();
+    public IListenableScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+      return NeverScheduledFutureI.create();
     }
 
     @Override
-    public ListenableScheduledFuture<?> scheduleAtFixedRate(
+    public IListenableScheduledFuture<?> scheduleAtFixedRate(
         Runnable command, long initialDelay, long period, TimeUnit unit) {
-      return NeverScheduledFuture.create();
+      return NeverScheduledFutureI.create();
     }
 
     @Override
-    public ListenableScheduledFuture<?> scheduleWithFixedDelay(
+    public IListenableScheduledFuture<?> scheduleWithFixedDelay(
         Runnable command, long initialDelay, long delay, TimeUnit unit) {
-      return NeverScheduledFuture.create();
+      return NeverScheduledFutureI.create();
     }
 
-    private static class NeverScheduledFuture<V> extends AbstractFuture<V>
-        implements ListenableScheduledFuture<V> {
+    private static class NeverScheduledFutureI<V> extends AbstractFutureI<V>
+        implements IListenableScheduledFuture<V> {
 
-      static <V> NeverScheduledFuture<V> create() {
-        return new NeverScheduledFuture<V>();
+      static <V> NeverScheduledFutureI<V> create() {
+        return new NeverScheduledFutureI<V>();
       }
 
       @Override

@@ -37,31 +37,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @GwtIncompatible
 public final class JdkFutureAdapters {
   /**
-   * Assigns a thread to the given {@link Future} to provide {@link ListenableFuture} functionality.
+   * Assigns a thread to the given {@link Future} to provide {@link IListenableFuture} functionality.
    *
    * <p><b>Warning:</b> If the input future does not already implement {@code ListenableFuture}, the
-   * returned future will emulate {@link ListenableFuture#addListener} by taking a thread from an
+   * returned future will emulate {@link IListenableFuture#addListener} by taking a thread from an
    * internal, unbounded pool at the first call to {@code addListener} and holding it until the
    * future is {@linkplain Future#isDone() done}.
    *
-   * <p>Prefer to create {@code ListenableFuture} instances with {@link SettableFuture}, {@link
+   * <p>Prefer to create {@code ListenableFuture} instances with {@link SettableFutureI}, {@link
    * MoreExecutors#listeningDecorator( java.util.concurrent.ExecutorService)}, {@link
-   * ListenableFutureTask}, {@link AbstractFuture}, and other utilities over creating plain {@code
+   * IListenableFutureTask}, {@link AbstractFutureI}, and other utilities over creating plain {@code
    * Future} instances to be upgraded to {@code ListenableFuture} after the fact.
    */
-  public static <V> ListenableFuture<V> listenInPoolThread(Future<V> future) {
-    if (future instanceof ListenableFuture) {
-      return (ListenableFuture<V>) future;
+  public static <V> IListenableFuture<V> listenInPoolThread(Future<V> future) {
+    if (future instanceof IListenableFuture) {
+      return (IListenableFuture<V>) future;
     }
-    return new ListenableFutureAdapter<V>(future);
+    return new IListenableFutureAdapter<V>(future);
   }
 
   /**
-   * Submits a blocking task for the given {@link Future} to provide {@link ListenableFuture}
+   * Submits a blocking task for the given {@link Future} to provide {@link IListenableFuture}
    * functionality.
    *
    * <p><b>Warning:</b> If the input future does not already implement {@code ListenableFuture}, the
-   * returned future will emulate {@link ListenableFuture#addListener} by submitting a task to the
+   * returned future will emulate {@link IListenableFuture#addListener} by submitting a task to the
    * given executor at the first call to {@code addListener}. The task must be started by the
    * executor promptly, or else the returned {@code ListenableFuture} may fail to work. The task's
    * execution consists of blocking until the input future is {@linkplain Future#isDone() done}, so
@@ -69,23 +69,23 @@ public final class JdkFutureAdapters {
    * bounded executors or other executors that may fail to execute a task promptly may result in
    * deadlocks.
    *
-   * <p>Prefer to create {@code ListenableFuture} instances with {@link SettableFuture}, {@link
+   * <p>Prefer to create {@code ListenableFuture} instances with {@link SettableFutureI}, {@link
    * MoreExecutors#listeningDecorator( java.util.concurrent.ExecutorService)}, {@link
-   * ListenableFutureTask}, {@link AbstractFuture}, and other utilities over creating plain {@code
+   * IListenableFutureTask}, {@link AbstractFutureI}, and other utilities over creating plain {@code
    * Future} instances to be upgraded to {@code ListenableFuture} after the fact.
    *
    * @since 12.0
    */
-  public static <V> ListenableFuture<V> listenInPoolThread(Future<V> future, Executor executor) {
+  public static <V> IListenableFuture<V> listenInPoolThread(Future<V> future, Executor executor) {
     checkNotNull(executor);
-    if (future instanceof ListenableFuture) {
-      return (ListenableFuture<V>) future;
+    if (future instanceof IListenableFuture) {
+      return (IListenableFuture<V>) future;
     }
-    return new ListenableFutureAdapter<V>(future, executor);
+    return new IListenableFutureAdapter<V>(future, executor);
   }
 
   /**
-   * An adapter to turn a {@link Future} into a {@link ListenableFuture}. This will wait on the
+   * An adapter to turn a {@link Future} into a {@link IListenableFuture}. This will wait on the
    * future to finish, and when it completes, run the listeners. This implementation will wait on
    * the source future indefinitely, so if the source future never completes, the adapter will never
    * complete either.
@@ -93,8 +93,8 @@ public final class JdkFutureAdapters {
    * <p>If the delegate future is interrupted or throws an unexpected unchecked exception, the
    * listeners will not be invoked.
    */
-  private static class ListenableFutureAdapter<V> extends ForwardingFuture<V>
-      implements ListenableFuture<V> {
+  private static class IListenableFutureAdapter<V> extends ForwardingFuture<V>
+      implements IListenableFuture<V> {
 
     private static final ThreadFactory threadFactory =
         new ThreadFactoryBuilder()
@@ -116,11 +116,11 @@ public final class JdkFutureAdapters {
     // The delegate future.
     private final Future<V> delegate;
 
-    ListenableFutureAdapter(Future<V> delegate) {
+    IListenableFutureAdapter(Future<V> delegate) {
       this(delegate, defaultAdapterExecutor);
     }
 
-    ListenableFutureAdapter(Future<V> delegate, Executor adapterExecutor) {
+    IListenableFutureAdapter(Future<V> delegate, Executor adapterExecutor) {
       this.delegate = checkNotNull(delegate);
       this.adapterExecutor = checkNotNull(adapterExecutor);
     }

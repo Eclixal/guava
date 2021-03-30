@@ -58,7 +58,7 @@ public class FuturesGetCheckedTest extends TestCase {
   }
 
   public void testGetCheckedUntimed_interrupted() {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     Thread.currentThread().interrupt();
     try {
       getChecked(future, TwoArgConstructorException.class);
@@ -72,7 +72,7 @@ public class FuturesGetCheckedTest extends TestCase {
   }
 
   public void testGetCheckedUntimed_cancelled() throws TwoArgConstructorException {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     future.cancel(true);
     try {
       getChecked(future, TwoArgConstructorException.class);
@@ -172,7 +172,7 @@ public class FuturesGetCheckedTest extends TestCase {
   }
 
   public void testGetCheckedTimed_interrupted() {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     Thread.currentThread().interrupt();
     try {
       getChecked(future, TwoArgConstructorException.class, 0, SECONDS);
@@ -186,7 +186,7 @@ public class FuturesGetCheckedTest extends TestCase {
   }
 
   public void testGetCheckedTimed_cancelled() throws TwoArgConstructorException {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     future.cancel(true);
     try {
       getChecked(future, TwoArgConstructorException.class, 0, SECONDS);
@@ -251,7 +251,7 @@ public class FuturesGetCheckedTest extends TestCase {
   }
 
   public void testGetCheckedTimed_TimeoutException() {
-    SettableFuture<String> future = SettableFuture.create();
+    SettableFutureI<String> future = SettableFutureI.create();
     try {
       getChecked(future, TwoArgConstructorException.class, 0, SECONDS);
       fail();

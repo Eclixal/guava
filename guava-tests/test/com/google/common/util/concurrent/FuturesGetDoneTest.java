@@ -56,7 +56,7 @@ public class FuturesGetDoneTest extends TestCase {
 
   public void testPending() throws ExecutionException {
     try {
-      getDone(SettableFuture.create());
+      getDone(SettableFutureI.create());
       fail();
     } catch (IllegalStateException expected) {
     }

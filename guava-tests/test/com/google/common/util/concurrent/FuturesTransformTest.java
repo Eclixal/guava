@@ -23,17 +23,17 @@ import com.google.common.base.Function;
 import java.lang.reflect.UndeclaredThrowableException;
 
 /**
- * Unit tests for {@link Futures#transform(ListenableFuture, Function, Executor)}.
+ * Unit tests for {@link Futures#transform(IListenableFuture, Function, Executor)}.
  *
  * @author Nishant Thakkar
  */
-public class FuturesTransformTest extends AbstractChainedListenableFutureTest<String> {
+public class FuturesTransformTest extends AbstractChainedIListenableFutureTest<String> {
   private static final String RESULT_DATA = "SUCCESS";
   private static final UndeclaredThrowableException WRAPPED_EXCEPTION =
       new UndeclaredThrowableException(EXCEPTION);
 
   @Override
-  protected ListenableFuture<String> buildChainingFuture(ListenableFuture<Integer> inputFuture) {
+  protected IListenableFuture<String> buildChainingFuture(IListenableFuture<Integer> inputFuture) {
     return transform(inputFuture, new ComposeFunction(), directExecutor());
   }
 

@@ -11,7 +11,7 @@
   <version>1.0</version>
   <name>Guava ListenableFuture only</name>
   <description>
-    Contains Guava's com.google.common.util.concurrent.ListenableFuture class,
+    Contains Guava's com.google.common.util.concurrent.IListenableFuture class,
     without any of its other classes -- but is also available in a second
     "version" that omits the class to avoid conflicts with the copy in Guava
     itself. The idea is:

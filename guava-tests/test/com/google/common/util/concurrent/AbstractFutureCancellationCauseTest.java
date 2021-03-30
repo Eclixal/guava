@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.GuardedBy;
 import junit.framework.TestCase;
 
-/** Tests for {@link AbstractFuture} with the cancellation cause system property set */
+/** Tests for {@link AbstractFutureI} with the cancellation cause system property set */
 
 public class AbstractFutureCancellationCauseTest extends TestCase {
 
@@ -41,12 +41,12 @@ public class AbstractFutureCancellationCauseTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     // Load the "normal" copy of SettableFuture and related classes.
-    SettableFuture<?> unused = SettableFuture.create();
+    SettableFutureI<?> unused = SettableFutureI.create();
     // Hack to load AbstractFuture et. al. in a new classloader so that it re-reads the cancellation
     // cause system property.  This allows us to run with both settings of the property in one jvm
     // without resorting to even crazier hacks to reset static final boolean fields.
     System.setProperty("guava.concurrent.generate_cancellation_cause", "true");
-    final String concurrentPackage = SettableFuture.class.getPackage().getName();
+    final String concurrentPackage = SettableFutureI.class.getPackage().getName();
     classReloader =
         new URLClassLoader(ClassPathUtil.getClassPathUrls()) {
           @GuardedBy("loadedClasses")
@@ -56,7 +56,7 @@ public class AbstractFutureCancellationCauseTest extends TestCase {
           public Class<?> loadClass(String name) throws ClassNotFoundException {
             if (name.startsWith(concurrentPackage)
                 // Use other classloader for ListenableFuture, so that the objects can interact
-                && !ListenableFuture.class.getName().equals(name)) {
+                && !IListenableFuture.class.getName().equals(name)) {
               synchronized (loadedClasses) {
                 Class<?> toReturn = loadedClasses.get(name);
                 if (toReturn == null) {
@@ -71,8 +71,8 @@ public class AbstractFutureCancellationCauseTest extends TestCase {
         };
     oldClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(classReloader);
-    abstractFutureClass = classReloader.loadClass(AbstractFuture.class.getName());
-    settableFutureClass = classReloader.loadClass(SettableFuture.class.getName());
+    abstractFutureClass = classReloader.loadClass(AbstractFutureI.class.getName());
+    settableFutureClass = classReloader.loadClass(SettableFutureI.class.getName());
   }
 
   @Override
@@ -111,8 +111,8 @@ public class AbstractFutureCancellationCauseTest extends TestCase {
   }
 
   public void testSetFuture_misbehavingFutureDoesNotThrow() throws Exception {
-    ListenableFuture<String> badFuture =
-        new ListenableFuture<String>() {
+    IListenableFuture<String> badFuture =
+        new IListenableFuture<String>() {
           @Override
           public boolean cancel(boolean interrupt) {
             return false;
@@ -148,7 +148,7 @@ public class AbstractFutureCancellationCauseTest extends TestCase {
         .getClass()
         .getMethod(
             "setFuture",
-            future.getClass().getClassLoader().loadClass(ListenableFuture.class.getName()))
+            future.getClass().getClassLoader().loadClass(IListenableFuture.class.getName()))
         .invoke(future, badFuture);
     try {
       future.get();

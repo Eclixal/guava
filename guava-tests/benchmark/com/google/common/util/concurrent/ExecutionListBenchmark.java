@@ -26,7 +26,7 @@ import com.google.caliper.api.Footprint;
 import com.google.caliper.api.VmOptions;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.AbstractFutureBenchmarks.OldAbstractFuture;
+import com.google.common.util.concurrent.AbstractFutureBenchmarks.OldAbstractFutureI;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -174,7 +174,7 @@ public class ExecutionListBenchmark {
       @Override
       ExecutionListWrapper newExecutionList() {
         return new ExecutionListWrapper() {
-          final AbstractFuture<?> future = new AbstractFuture<Object>() {};
+          final AbstractFutureI<?> future = new AbstractFutureI<Object>() {};
 
           @Override
           public void add(Runnable runnable, Executor executor) {
@@ -198,7 +198,7 @@ public class ExecutionListBenchmark {
       @Override
       ExecutionListWrapper newExecutionList() {
         return new ExecutionListWrapper() {
-          final OldAbstractFuture<Object> future = new OldAbstractFuture<Object>() {};
+          final OldAbstractFutureI<Object> future = new OldAbstractFutureI<Object>() {};
 
           @Override
           public void add(Runnable runnable, Executor executor) {

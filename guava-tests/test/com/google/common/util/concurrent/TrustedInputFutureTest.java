@@ -18,18 +18,17 @@ package com.google.common.util.concurrent;
 
 
 import com.google.common.annotations.GwtCompatible;
-import com.google.common.util.concurrent.AbstractFuture.TrustedFuture;
 
 /**
- * Tests for {@link AbstractFuture} that use a {@link TrustedFuture} for {@link
- * AbstractFuture#setFuture} calls.
+ * Tests for {@link AbstractFutureI} that use a {@link AbstractFutureI.TrustedFutureI} for {@link
+ * AbstractFutureI#setFuture} calls.
  */
 @GwtCompatible
 public class TrustedInputFutureTest extends AbstractAbstractFutureTest {
   @Override
-  AbstractFuture<Integer> newDelegate() {
-    AbstractFuture<Integer> future = new TrustedFuture<Integer>() {};
-    assertTrue(future instanceof TrustedFuture); // sanity check
+  AbstractFutureI<Integer> newDelegate() {
+    AbstractFutureI<Integer> future = new AbstractFutureI.TrustedFutureI<Integer>() {};
+    assertTrue(future instanceof AbstractFutureI.TrustedFutureI); // sanity check
     return future;
   }
 }

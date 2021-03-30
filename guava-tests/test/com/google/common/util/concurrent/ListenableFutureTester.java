@@ -39,10 +39,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public class ListenableFutureTester {
 
   private final ExecutorService exec;
-  private final ListenableFuture<?> future;
+  private final IListenableFuture<?> future;
   private final CountDownLatch latch;
 
-  public ListenableFutureTester(ListenableFuture<?> future) {
+  public ListenableFutureTester(IListenableFuture<?> future) {
     this.exec = Executors.newCachedThreadPool();
     this.future = checkNotNull(future);
     this.latch = new CountDownLatch(1);

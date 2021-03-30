@@ -17,7 +17,7 @@
 package com.google.common.util.concurrent.testing;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
+import com.google.common.util.concurrent.IListeningScheduledExecutorService;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -52,7 +52,7 @@ public class TestingExecutorsTest extends TestCase {
   }
 
   public void testNoOpScheduledExecutorShutdown() {
-    ListeningScheduledExecutorService executor = TestingExecutors.noOpScheduledExecutor();
+    IListeningScheduledExecutorService executor = TestingExecutors.noOpScheduledExecutor();
     assertFalse(executor.isShutdown());
     assertFalse(executor.isTerminated());
     executor.shutdown();
@@ -61,7 +61,7 @@ public class TestingExecutorsTest extends TestCase {
   }
 
   public void testNoOpScheduledExecutorInvokeAll() throws ExecutionException, InterruptedException {
-    ListeningScheduledExecutorService executor = TestingExecutors.noOpScheduledExecutor();
+    IListeningScheduledExecutorService executor = TestingExecutors.noOpScheduledExecutor();
     taskDone = false;
     Callable<Boolean> task =
         new Callable<Boolean>() {

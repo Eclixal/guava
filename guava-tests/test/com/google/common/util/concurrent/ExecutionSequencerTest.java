@@ -44,15 +44,15 @@ public class ExecutionSequencerTest extends TestCase {
   ExecutorService executor;
 
   private ExecutionSequencer serializer;
-  private SettableFuture<Void> firstFuture;
-  private TestCallable firstCallable;
+  private SettableFutureI<Void> firstFuture;
+  private TestCallableI firstCallable;
 
   @Override
   public void setUp() throws Exception {
     executor = Executors.newCachedThreadPool();
     serializer = ExecutionSequencer.create();
-    firstFuture = SettableFuture.create();
-    firstCallable = new TestCallable(firstFuture);
+    firstFuture = SettableFutureI.create();
+    firstCallable = new TestCallableI(firstFuture);
   }
 
   @Override
@@ -63,7 +63,7 @@ public class ExecutionSequencerTest extends TestCase {
   public void testCallableStartsAfterFirstFutureCompletes() {
     @SuppressWarnings({"unused", "nullness"})
     Future<?> possiblyIgnoredError = serializer.submitAsync(firstCallable, directExecutor());
-    TestCallable secondCallable = new TestCallable(Futures.<Void>immediateFuture(null));
+    TestCallableI secondCallable = new TestCallableI(Futures.<Void>immediateFuture(null));
     @SuppressWarnings({"unused", "nullness"})
     Future<?> possiblyIgnoredError1 = serializer.submitAsync(secondCallable, directExecutor());
     assertThat(firstCallable.called).isTrue();
@@ -75,9 +75,9 @@ public class ExecutionSequencerTest extends TestCase {
   public void testCancellationDoesNotViolateSerialization() {
     @SuppressWarnings({"unused", "nullness"})
     Future<?> possiblyIgnoredError = serializer.submitAsync(firstCallable, directExecutor());
-    TestCallable secondCallable = new TestCallable(Futures.<Void>immediateFuture(null));
-    ListenableFuture<Void> secondFuture = serializer.submitAsync(secondCallable, directExecutor());
-    TestCallable thirdCallable = new TestCallable(Futures.<Void>immediateFuture(null));
+    TestCallableI secondCallable = new TestCallableI(Futures.<Void>immediateFuture(null));
+    IListenableFuture<Void> secondFuture = serializer.submitAsync(secondCallable, directExecutor());
+    TestCallableI thirdCallable = new TestCallableI(Futures.<Void>immediateFuture(null));
     @SuppressWarnings({"unused", "nullness"})
     Future<?> possiblyIgnoredError1 = serializer.submitAsync(thirdCallable, directExecutor());
     secondFuture.cancel(true);
@@ -91,8 +91,8 @@ public class ExecutionSequencerTest extends TestCase {
 
   public void testCancellationMultipleThreads() throws Exception {
     final BlockingCallable blockingCallable = new BlockingCallable();
-    ListenableFuture<Void> unused = serializer.submit(blockingCallable, executor);
-    ListenableFuture<Boolean> future2 =
+    IListenableFuture<Void> unused = serializer.submit(blockingCallable, executor);
+    IListenableFuture<Boolean> future2 =
         serializer.submit(
             new Callable<Boolean>() {
               @Override
@@ -119,8 +119,8 @@ public class ExecutionSequencerTest extends TestCase {
 
   public void testSecondTaskWaitsForFirstEvenIfCancelled() throws Exception {
     final BlockingCallable blockingCallable = new BlockingCallable();
-    ListenableFuture<Void> future1 = serializer.submit(blockingCallable, executor);
-    ListenableFuture<Boolean> future2 =
+    IListenableFuture<Void> future1 = serializer.submit(blockingCallable, executor);
+    IListenableFuture<Boolean> future2 =
         serializer.submit(
             new Callable<Boolean>() {
               @Override
@@ -155,12 +155,12 @@ public class ExecutionSequencerTest extends TestCase {
   public void testCancellationWithReferencedObject() throws Exception {
     Object toBeGCed = new Object();
     WeakReference<Object> ref = new WeakReference<>(toBeGCed);
-    final SettableFuture<Void> settableFuture = SettableFuture.create();
-    ListenableFuture<?> ignored =
+    final SettableFutureI<Void> settableFuture = SettableFutureI.create();
+    IListenableFuture<?> ignored =
         serializer.submitAsync(
-            new AsyncCallable<Void>() {
+            new IAsyncCallable<Void>() {
               @Override
-              public ListenableFuture<Void> call() {
+              public IListenableFuture<Void> call() {
                 return settableFuture;
               }
             },
@@ -181,7 +181,7 @@ public class ExecutionSequencerTest extends TestCase {
 
   public void testCancellationDuringReentrancy() throws Exception {
     TestLogHandler logHandler = new TestLogHandler();
-    Logger.getLogger(AbstractFuture.class.getName()).addHandler(logHandler);
+    Logger.getLogger(AbstractFutureI.class.getName()).addHandler(logHandler);
 
     List<Future<?>> results = new ArrayList<>();
     final Runnable[] manualExecutorTask = new Runnable[1];
@@ -225,13 +225,13 @@ public class ExecutionSequencerTest extends TestCase {
   }
 
   public void testAvoidsStackOverflow_manySubmitted() throws Exception {
-    final SettableFuture<Void> settableFuture = SettableFuture.create();
-    ArrayList<ListenableFuture<Void>> results = new ArrayList<>(50_001);
+    final SettableFutureI<Void> settableFuture = SettableFutureI.create();
+    ArrayList<IListenableFuture<Void>> results = new ArrayList<>(50_001);
     results.add(
         serializer.submitAsync(
-            new AsyncCallable<Void>() {
+            new IAsyncCallable<Void>() {
               @Override
-              public ListenableFuture<Void> call() {
+              public IListenableFuture<Void> call() {
                 return settableFuture;
               }
             },
@@ -244,12 +244,12 @@ public class ExecutionSequencerTest extends TestCase {
   }
 
   public void testAvoidsStackOverflow_manyCancelled() throws Exception {
-    final SettableFuture<Void> settableFuture = SettableFuture.create();
-    ListenableFuture<Void> unused =
+    final SettableFutureI<Void> settableFuture = SettableFutureI.create();
+    IListenableFuture<Void> unused =
         serializer.submitAsync(
-            new AsyncCallable<Void>() {
+            new IAsyncCallable<Void>() {
               @Override
-              public ListenableFuture<Void> call() {
+              public IListenableFuture<Void> call() {
                 return settableFuture;
               }
             },
@@ -257,7 +257,7 @@ public class ExecutionSequencerTest extends TestCase {
     for (int i = 0; i < 50_000; i++) {
       serializer.submit(Callables.<Void>returning(null), directExecutor()).cancel(true);
     }
-    ListenableFuture<Integer> stackDepthCheck =
+    IListenableFuture<Integer> stackDepthCheck =
         serializer.submit(
             new Callable<Integer>() {
               @Override
@@ -272,12 +272,12 @@ public class ExecutionSequencerTest extends TestCase {
   }
 
   public void testAvoidsStackOverflow_alternatingCancelledAndSubmitted() throws Exception {
-    final SettableFuture<Void> settableFuture = SettableFuture.create();
-    ListenableFuture<Void> unused =
+    final SettableFutureI<Void> settableFuture = SettableFutureI.create();
+    IListenableFuture<Void> unused =
         serializer.submitAsync(
-            new AsyncCallable<Void>() {
+            new IAsyncCallable<Void>() {
               @Override
-              public ListenableFuture<Void> call() {
+              public IListenableFuture<Void> call() {
                 return settableFuture;
               }
             },
@@ -286,7 +286,7 @@ public class ExecutionSequencerTest extends TestCase {
       serializer.submit(Callables.<Void>returning(null), directExecutor()).cancel(true);
       unused = serializer.submit(Callables.<Void>returning(null), directExecutor());
     }
-    ListenableFuture<Integer> stackDepthCheck =
+    IListenableFuture<Integer> stackDepthCheck =
         serializer.submit(
             new Callable<Integer>() {
               @Override
@@ -309,11 +309,11 @@ public class ExecutionSequencerTest extends TestCase {
     };
   }
 
-  private static AsyncCallable<Integer> asyncAdd(
-      final ListenableFuture<Integer> future, final int delta, final Executor executor) {
-    return new AsyncCallable<Integer>() {
+  private static IAsyncCallable<Integer> asyncAdd(
+          final IListenableFuture<Integer> future, final int delta, final Executor executor) {
+    return new IAsyncCallable<Integer>() {
       @Override
-      public ListenableFuture<Integer> call() throws Exception {
+      public IListenableFuture<Integer> call() throws Exception {
         return Futures.transform(future, add(delta), executor);
       }
     };
@@ -330,7 +330,7 @@ public class ExecutionSequencerTest extends TestCase {
 
   public void testAvoidsStackOverflow_multipleThreads() throws Exception {
     final LongHolder holder = new LongHolder();
-    final ArrayList<ListenableFuture<Integer>> lengthChecks = new ArrayList<>();
+    final ArrayList<IListenableFuture<Integer>> lengthChecks = new ArrayList<>();
     final List<Integer> completeLengthChecks;
     final int baseStackDepth;
     ExecutorService service = Executors.newFixedThreadPool(5);
@@ -347,12 +347,12 @@ public class ExecutionSequencerTest extends TestCase {
                   },
                   service)
               .get();
-      final SettableFuture<Void> settableFuture = SettableFuture.create();
-      ListenableFuture<?> unused =
+      final SettableFutureI<Void> settableFuture = SettableFutureI.create();
+      IListenableFuture<?> unused =
           serializer.submitAsync(
-              new AsyncCallable<Void>() {
+              new IAsyncCallable<Void>() {
                 @Override
-                public ListenableFuture<Void> call() {
+                public IListenableFuture<Void> call() {
                   return settableFuture;
                 }
               },
@@ -411,7 +411,7 @@ public class ExecutionSequencerTest extends TestCase {
   @SuppressWarnings("ObjectToString") // Intended behavior
   public void testToString() {
     Future<?> unused = serializer.submitAsync(firstCallable, directExecutor());
-    TestCallable secondCallable = new TestCallable(SettableFuture.<Void>create());
+    TestCallableI secondCallable = new TestCallableI(SettableFutureI.<Void>create());
     Future<?> second = serializer.submitAsync(secondCallable, directExecutor());
     assertThat(secondCallable.called).isFalse();
     assertThat(second.toString()).contains(secondCallable.toString());
@@ -447,17 +447,17 @@ public class ExecutionSequencerTest extends TestCase {
     }
   }
 
-  private static final class TestCallable implements AsyncCallable<Void> {
+  private static final class TestCallableI implements IAsyncCallable<Void> {
 
-    private final ListenableFuture<Void> future;
+    private final IListenableFuture<Void> future;
     private boolean called = false;
 
-    private TestCallable(ListenableFuture<Void> future) {
+    private TestCallableI(IListenableFuture<Void> future) {
       this.future = future;
     }
 
     @Override
-    public ListenableFuture<Void> call() throws Exception {
+    public IListenableFuture<Void> call() throws Exception {
       called = true;
       return future;
     }

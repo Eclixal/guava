@@ -20,7 +20,8 @@ import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtIncompatible;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.IListenableFuture;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -36,9 +37,9 @@ import junit.framework.Assert;
 @GwtIncompatible
 public class MockFutureListener implements Runnable {
   private final CountDownLatch countDownLatch;
-  private final ListenableFuture<?> future;
+  private final IListenableFuture<?> future;
 
-  public MockFutureListener(ListenableFuture<?> future) {
+  public MockFutureListener(IListenableFuture<?> future) {
     this.countDownLatch = new CountDownLatch(1);
     this.future = future;
 

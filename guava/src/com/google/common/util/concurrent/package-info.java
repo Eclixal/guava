@@ -15,8 +15,8 @@
 /**
  * Concurrency utilities.
  *
- * <p>Commonly used types include {@link com.google.common.util.concurrent.ListenableFuture} and
- * {@link com.google.common.util.concurrent.Service}.
+ * <p>Commonly used types include {@link com.google.common.util.concurrent.IListenableFuture} and
+ * {@link com.google.common.util.concurrent.IService}.
  *
  * <p>Commonly used utilities include {@link com.google.common.util.concurrent.Futures}, {@link
  * com.google.common.util.concurrent.MoreExecutors}, and {@link

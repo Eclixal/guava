@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.GuardedBy;
 import junit.framework.TestCase;
 
-/** Tests for {@link AbstractFuture} using an innocuous thread. */
+/** Tests for {@link AbstractFutureI} using an innocuous thread. */
 
 public class AbstractFutureInnocuousThreadTest extends TestCase {
   private ClassLoader oldClassLoader;
@@ -39,12 +39,12 @@ public class AbstractFutureInnocuousThreadTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     // Load the "normal" copy of SettableFuture and related classes.
-    SettableFuture<?> unused = SettableFuture.create();
+    SettableFutureI<?> unused = SettableFutureI.create();
     // Hack to load AbstractFuture et. al. in a new classloader so that it tries to re-read the
     // cancellation-cause system property. This allows us to test what happens if reading the
     // property is forbidden and then continue running tests normally in one jvm without resorting
     // to even crazier hacks to reset static final boolean fields.
-    final String concurrentPackage = SettableFuture.class.getPackage().getName();
+    final String concurrentPackage = SettableFutureI.class.getPackage().getName();
     classReloader =
         new URLClassLoader(ClassPathUtil.getClassPathUrls()) {
           @GuardedBy("loadedClasses")
@@ -54,7 +54,7 @@ public class AbstractFutureInnocuousThreadTest extends TestCase {
           public Class<?> loadClass(String name) throws ClassNotFoundException {
             if (name.startsWith(concurrentPackage)
                 // Use other classloader for ListenableFuture, so that the objects can interact
-                && !ListenableFuture.class.getName().equals(name)) {
+                && !IListenableFuture.class.getName().equals(name)) {
               synchronized (loadedClasses) {
                 Class<?> toReturn = loadedClasses.get(name);
                 if (toReturn == null) {
@@ -88,7 +88,7 @@ public class AbstractFutureInnocuousThreadTest extends TestCase {
         };
     System.setSecurityManager(disallowPropertySecurityManager);
 
-    settableFutureClass = classReloader.loadClass(SettableFuture.class.getName());
+    settableFutureClass = classReloader.loadClass(SettableFutureI.class.getName());
 
     /*
      * We must keep the SecurityManager installed during the test body: It affects what kind of

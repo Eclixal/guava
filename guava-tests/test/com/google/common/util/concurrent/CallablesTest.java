@@ -56,10 +56,10 @@ public class CallablesTest extends TestCase {
           }
         };
 
-    AsyncCallable<String> asyncCallable =
+    IAsyncCallable<String> IAsyncCallable =
         Callables.asAsyncCallable(callable, MoreExecutors.newDirectExecutorService());
 
-    ListenableFuture<String> future = asyncCallable.call();
+    IListenableFuture<String> future = IAsyncCallable.call();
     assertSame(expected, future.get());
   }
 
@@ -74,10 +74,10 @@ public class CallablesTest extends TestCase {
           }
         };
 
-    AsyncCallable<String> asyncCallable =
+    IAsyncCallable<String> IAsyncCallable =
         Callables.asAsyncCallable(callable, MoreExecutors.newDirectExecutorService());
 
-    ListenableFuture<String> future = asyncCallable.call();
+    IListenableFuture<String> future = IAsyncCallable.call();
     try {
       future.get();
       fail("Expected exception to be thrown");

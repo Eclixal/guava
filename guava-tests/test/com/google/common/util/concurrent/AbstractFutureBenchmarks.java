@@ -31,7 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 final class AbstractFutureBenchmarks {
   private AbstractFutureBenchmarks() {}
 
-  interface Facade<T> extends ListenableFuture<T> {
+  interface Facade<T> extends IListenableFuture<T> {
     @CanIgnoreReturnValue
     boolean set(T t);
 
@@ -39,7 +39,7 @@ final class AbstractFutureBenchmarks {
     boolean setException(Throwable t);
   }
 
-  private static class NewAbstractFutureFacade<T> extends AbstractFuture<T> implements Facade<T> {
+  private static class NewAbstractFutureFacadeI<T> extends AbstractFutureI<T> implements Facade<T> {
     @CanIgnoreReturnValue
     @Override
     public boolean set(T t) {
@@ -53,7 +53,7 @@ final class AbstractFutureBenchmarks {
     }
   }
 
-  private static class OldAbstractFutureFacade<T> extends OldAbstractFuture<T>
+  private static class OldAbstractFutureFacadeI<T> extends OldAbstractFutureI<T>
       implements Facade<T> {
     @CanIgnoreReturnValue
     @Override
@@ -72,13 +72,13 @@ final class AbstractFutureBenchmarks {
     NEW {
       @Override
       <T> Facade<T> newFacade() {
-        return new NewAbstractFutureFacade<T>();
+        return new NewAbstractFutureFacadeI<T>();
       }
     },
     OLD {
       @Override
       <T> Facade<T> newFacade() {
-        return new OldAbstractFutureFacade<T>();
+        return new OldAbstractFutureFacadeI<T>();
       }
     };
 
@@ -101,7 +101,7 @@ final class AbstractFutureBenchmarks {
     }
   }
 
-  abstract static class OldAbstractFuture<V> implements ListenableFuture<V> {
+  abstract static class OldAbstractFutureI<V> implements IListenableFuture<V> {
 
     /** Synchronization control for AbstractFutures. */
     private final Sync<V> sync = new Sync<V>();
@@ -110,7 +110,7 @@ final class AbstractFutureBenchmarks {
     private final ExecutionList executionList = new ExecutionList();
 
     /** Constructor for use by subclasses. */
-    protected OldAbstractFuture() {}
+    protected OldAbstractFutureI() {}
 
     /*
      * Improve the documentation of when InterruptedException is thrown. Our
@@ -119,7 +119,7 @@ final class AbstractFutureBenchmarks {
     /**
      * {@inheritDoc}
      *
-     * <p>The default {@link AbstractFuture} implementation throws {@code InterruptedException} if
+     * <p>The default {@link AbstractFutureI} implementation throws {@code InterruptedException} if
      * the current thread is interrupted before or during the call, even if the value is already
      * available.
      *
@@ -141,7 +141,7 @@ final class AbstractFutureBenchmarks {
     /**
      * {@inheritDoc}
      *
-     * <p>The default {@link AbstractFuture} implementation throws {@code InterruptedException} if
+     * <p>The default {@link AbstractFutureI} implementation throws {@code InterruptedException} if
      * the current thread is interrupted before or during the call, even if the value is already
      * available.
      *
@@ -211,7 +211,7 @@ final class AbstractFutureBenchmarks {
 
     /**
      * Subclasses should invoke this method to set the result of the computation to {@code value}.
-     * This will set the state of the future to {@link OldAbstractFuture.Sync#COMPLETED} and invoke
+     * This will set the state of the future to {@link OldAbstractFutureI.Sync#COMPLETED} and invoke
      * the listeners if the state was successfully changed.
      *
      * @param value the value that was the result of the task.
@@ -228,7 +228,7 @@ final class AbstractFutureBenchmarks {
 
     /**
      * Subclasses should invoke this method to set the result of the computation to an error, {@code
-     * throwable}. This will set the state of the future to {@link OldAbstractFuture.Sync#COMPLETED}
+     * throwable}. This will set the state of the future to {@link OldAbstractFutureI.Sync#COMPLETED}
      * and invoke the listeners if the state was successfully changed.
      *
      * @param throwable the exception that the task failed with.

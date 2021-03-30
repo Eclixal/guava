@@ -14,7 +14,7 @@ NAMESPACE org.junit
 
 # ***** REAL CYCLES *****
 # Cycle exists until future completes
-FIELD com.google.common.util.concurrent.AbstractFuture.Listener.executor com.google.common.util.concurrent.ExecutionSequencer.TaskNonReentrantExecutor
+FIELD com.google.common.util.concurrent.AbstractFutureI.Listener.executor com.google.common.util.concurrent.ExecutionSequencer.TaskNonReentrantExecutor
 
 # ***** FALSE POSITIVES *****
 
@@ -38,12 +38,12 @@ FIELD com.google.common.collect.Sets.SubSet.inputSet
 FIELD com.google.common.collect.SingletonImmutableBiMap.inverse
 FIELD com.google.common.collect.TreeTraverser.PostOrderNode.childIterator
 FIELD com.google.common.collect.TreeTraverser.PreOrderIterator.stack
-FIELD com.google.common.util.concurrent.AbstractFuture.Listener.executor com.google.common.util.concurrent.MoreExecutors.rejectionPropagatingExecutor.$
-FIELD com.google.common.util.concurrent.AbstractService.listeners
+FIELD com.google.common.util.concurrent.AbstractFutureI.Listener.executor com.google.common.util.concurrent.MoreExecutors.rejectionPropagatingExecutor.$
+FIELD com.google.common.util.concurrent.AbstractIService.listeners
 # NonReentrantExecutor is not exposed to this field
 FIELD com.google.common.util.concurrent.ExecutionSequencer.ThreadConfinedTaskQueue.nextExecutor com.google.common.util.concurrent.ExecutionSequencer.TaskNonReentrantExecutor
 # Real cycle, but the runningState field is null'ed on completion of the future.
-FIELD com.google.common.util.concurrent.AggregateFuture.runningState
+FIELD com.google.common.util.concurrent.AbstractAbstractAggregateFutureI.runningState
 FIELD java.util.AbstractMap.keySet com.google.common.collect.AbstractMapBasedMultimap.NavigableKeySet
 FIELD java.util.AbstractMap.keySet com.google.common.collect.Maps.FilteredEntryNavigableMap.navigableKeySet.$
 FIELD java.util.AbstractMap.keySet com.google.common.collect.TreeRangeMap.SubRangeMap.SubRangeMapAsMap.keySet.$

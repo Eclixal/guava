@@ -21,33 +21,33 @@ import static com.google.common.util.concurrent.Futures.transformAsync;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static com.google.common.util.concurrent.Uninterruptibles.awaitUninterruptibly;
 
-import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
+import com.google.common.util.concurrent.ForwardingIListenableFuture.SimpleForwardingIListenableFuture;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Unit tests for {@link Futures#transformAsync(ListenableFuture, AsyncFunction, Executor)}.
+ * Unit tests for {@link Futures#transformAsync(IListenableFuture, IAsyncFunction, Executor)}.
  *
  * @author Nishant Thakkar
  */
-public class FuturesTransformAsyncTest extends AbstractChainedListenableFutureTest<String> {
+public class FuturesTransformAsyncTest extends AbstractChainedIListenableFutureTest<String> {
   protected static final int SLOW_OUTPUT_VALID_INPUT_DATA = 2;
   protected static final int SLOW_FUNC_VALID_INPUT_DATA = 3;
   private static final String RESULT_DATA = "SUCCESS";
 
-  private SettableFuture<String> outputFuture;
+  private SettableFutureI<String> outputFuture;
   // Signals that the function is waiting to complete
   private CountDownLatch funcIsWaitingLatch;
   // Signals the function so it will complete
   private CountDownLatch funcCompletionLatch;
 
   @Override
-  protected ListenableFuture<String> buildChainingFuture(ListenableFuture<Integer> inputFuture) {
-    outputFuture = SettableFuture.create();
+  protected IListenableFuture<String> buildChainingFuture(IListenableFuture<Integer> inputFuture) {
+    outputFuture = SettableFutureI.create();
     funcIsWaitingLatch = new CountDownLatch(1);
     funcCompletionLatch = new CountDownLatch(1);
-    return transformAsync(inputFuture, new ChainingFunction(), directExecutor());
+    return transformAsync(inputFuture, new ChainingFunctionI(), directExecutor());
   }
 
   @Override
@@ -55,9 +55,9 @@ public class FuturesTransformAsyncTest extends AbstractChainedListenableFutureTe
     return RESULT_DATA;
   }
 
-  private class ChainingFunction implements AsyncFunction<Integer, String> {
+  private class ChainingFunctionI implements IAsyncFunction<Integer, String> {
     @Override
-    public ListenableFuture<String> apply(Integer input) throws Exception {
+    public IListenableFuture<String> apply(Integer input) throws Exception {
       switch (input) {
         case VALID_INPUT_DATA:
           outputFuture.set(RESULT_DATA);
@@ -173,8 +173,8 @@ public class FuturesTransformAsyncTest extends AbstractChainedListenableFutureTe
   }
 
   public void testFutureGetThrowsRuntimeException() throws Exception {
-    BadFuture badInput = new BadFuture(Futures.immediateFuture(20));
-    ListenableFuture<String> chain = buildChainingFuture(badInput);
+    BadFutureI badInput = new BadFutureI(Futures.immediateFuture(20));
+    IListenableFuture<String> chain = buildChainingFuture(badInput);
     try {
       chain.get();
       fail("Future.get must throw an exception when the input future fails.");
@@ -184,8 +184,8 @@ public class FuturesTransformAsyncTest extends AbstractChainedListenableFutureTe
   }
 
   /** Proxy to throw a {@link RuntimeException} out of the {@link #get()} method. */
-  public static class BadFuture extends SimpleForwardingListenableFuture<Integer> {
-    protected BadFuture(ListenableFuture<Integer> delegate) {
+  public static class BadFutureI extends SimpleForwardingIListenableFuture<Integer> {
+    protected BadFutureI(IListenableFuture<Integer> delegate) {
       super(delegate);
     }
 

@@ -26,7 +26,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
-import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
+import com.google.common.util.concurrent.ForwardingIListenableFuture.SimpleForwardingIListenableFuture;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import java.lang.reflect.InvocationTargetException;
@@ -297,7 +297,7 @@ public final class MoreExecutors {
 
   // See newDirectExecutorService javadoc for behavioral notes.
   @GwtIncompatible // TODO
-  private static final class DirectExecutorService extends AbstractListeningExecutorService {
+  private static final class DirectExecutorServiceI extends AbstractIListeningExecutorService {
     /** Lock used whenever accessing the state variables (runningTasks, shutdown) of the executor */
     private final Object lock = new Object();
 
@@ -425,8 +425,8 @@ public final class MoreExecutors {
    * @since 18.0 (present as MoreExecutors.sameThreadExecutor() since 10.0)
    */
   @GwtIncompatible // TODO
-  public static ListeningExecutorService newDirectExecutorService() {
-    return new DirectExecutorService();
+  public static IListeningExecutorService newDirectExecutorService() {
+    return new DirectExecutorServiceI();
   }
 
   /**
@@ -527,7 +527,7 @@ public final class MoreExecutors {
 
   /**
    * Creates an {@link ExecutorService} whose {@code submit} and {@code invokeAll} methods submit
-   * {@link ListenableFutureTask} instances to the given delegate executor. Those methods, as well
+   * {@link IListenableFutureTask} instances to the given delegate executor. Those methods, as well
    * as {@code execute} and {@code invokeAny}, are implemented in terms of calls to {@code
    * delegate.execute}. All other methods are forwarded unchanged to the delegate. This implies that
    * the returned {@code ListeningExecutorService} never calls the delegate's {@code submit}, {@code
@@ -541,17 +541,17 @@ public final class MoreExecutors {
    * @since 10.0
    */
   @GwtIncompatible // TODO
-  public static ListeningExecutorService listeningDecorator(ExecutorService delegate) {
-    return (delegate instanceof ListeningExecutorService)
-        ? (ListeningExecutorService) delegate
+  public static IListeningExecutorService listeningDecorator(ExecutorService delegate) {
+    return (delegate instanceof IListeningExecutorService)
+        ? (IListeningExecutorService) delegate
         : (delegate instanceof ScheduledExecutorService)
-            ? new ScheduledListeningDecorator((ScheduledExecutorService) delegate)
-            : new ListeningDecorator(delegate);
+            ? new ScheduledIListeningDecorator((ScheduledExecutorService) delegate)
+            : new IListeningDecorator(delegate);
   }
 
   /**
    * Creates a {@link ScheduledExecutorService} whose {@code submit} and {@code invokeAll} methods
-   * submit {@link ListenableFutureTask} instances to the given delegate executor. Those methods, as
+   * submit {@link IListenableFutureTask} instances to the given delegate executor. Those methods, as
    * well as {@code execute} and {@code invokeAny}, are implemented in terms of calls to {@code
    * delegate.execute}. All other methods are forwarded unchanged to the delegate. This implies that
    * the returned {@code ListeningScheduledExecutorService} never calls the delegate's {@code
@@ -566,18 +566,18 @@ public final class MoreExecutors {
    * @since 10.0
    */
   @GwtIncompatible // TODO
-  public static ListeningScheduledExecutorService listeningDecorator(
+  public static IListeningScheduledExecutorService listeningDecorator(
       ScheduledExecutorService delegate) {
-    return (delegate instanceof ListeningScheduledExecutorService)
-        ? (ListeningScheduledExecutorService) delegate
-        : new ScheduledListeningDecorator(delegate);
+    return (delegate instanceof IListeningScheduledExecutorService)
+        ? (IListeningScheduledExecutorService) delegate
+        : new ScheduledIListeningDecorator(delegate);
   }
 
   @GwtIncompatible // TODO
-  private static class ListeningDecorator extends AbstractListeningExecutorService {
+  private static class IListeningDecorator extends AbstractIListeningExecutorService {
     private final ExecutorService delegate;
 
-    ListeningDecorator(ExecutorService delegate) {
+    IListeningDecorator(ExecutorService delegate) {
       this.delegate = checkNotNull(delegate);
     }
 
@@ -613,55 +613,55 @@ public final class MoreExecutors {
   }
 
   @GwtIncompatible // TODO
-  private static final class ScheduledListeningDecorator extends ListeningDecorator
-      implements ListeningScheduledExecutorService {
+  private static final class ScheduledIListeningDecorator extends IListeningDecorator
+      implements IListeningScheduledExecutorService {
     @SuppressWarnings("hiding")
     final ScheduledExecutorService delegate;
 
-    ScheduledListeningDecorator(ScheduledExecutorService delegate) {
+    ScheduledIListeningDecorator(ScheduledExecutorService delegate) {
       super(delegate);
       this.delegate = checkNotNull(delegate);
     }
 
     @Override
-    public ListenableScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-      TrustedListenableFutureTask<Void> task = TrustedListenableFutureTask.create(command, null);
+    public IListenableScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+      TrustedIListenableFutureTask<Void> task = TrustedIListenableFutureTask.create(command, null);
       ScheduledFuture<?> scheduled = delegate.schedule(task, delay, unit);
-      return new ListenableScheduledTask<>(task, scheduled);
+      return new IListenableScheduledTask<>(task, scheduled);
     }
 
     @Override
-    public <V> ListenableScheduledFuture<V> schedule(
+    public <V> IListenableScheduledFuture<V> schedule(
         Callable<V> callable, long delay, TimeUnit unit) {
-      TrustedListenableFutureTask<V> task = TrustedListenableFutureTask.create(callable);
+      TrustedIListenableFutureTask<V> task = TrustedIListenableFutureTask.create(callable);
       ScheduledFuture<?> scheduled = delegate.schedule(task, delay, unit);
-      return new ListenableScheduledTask<V>(task, scheduled);
+      return new IListenableScheduledTask<V>(task, scheduled);
     }
 
     @Override
-    public ListenableScheduledFuture<?> scheduleAtFixedRate(
+    public IListenableScheduledFuture<?> scheduleAtFixedRate(
         Runnable command, long initialDelay, long period, TimeUnit unit) {
-      NeverSuccessfulListenableFutureTask task = new NeverSuccessfulListenableFutureTask(command);
+      NeverSuccessfulIListenableFutureTask task = new NeverSuccessfulIListenableFutureTask(command);
       ScheduledFuture<?> scheduled = delegate.scheduleAtFixedRate(task, initialDelay, period, unit);
-      return new ListenableScheduledTask<>(task, scheduled);
+      return new IListenableScheduledTask<>(task, scheduled);
     }
 
     @Override
-    public ListenableScheduledFuture<?> scheduleWithFixedDelay(
+    public IListenableScheduledFuture<?> scheduleWithFixedDelay(
         Runnable command, long initialDelay, long delay, TimeUnit unit) {
-      NeverSuccessfulListenableFutureTask task = new NeverSuccessfulListenableFutureTask(command);
+      NeverSuccessfulIListenableFutureTask task = new NeverSuccessfulIListenableFutureTask(command);
       ScheduledFuture<?> scheduled =
           delegate.scheduleWithFixedDelay(task, initialDelay, delay, unit);
-      return new ListenableScheduledTask<>(task, scheduled);
+      return new IListenableScheduledTask<>(task, scheduled);
     }
 
-    private static final class ListenableScheduledTask<V>
-        extends SimpleForwardingListenableFuture<V> implements ListenableScheduledFuture<V> {
+    private static final class IListenableScheduledTask<V>
+        extends SimpleForwardingIListenableFuture<V> implements IListenableScheduledFuture<V> {
 
       private final ScheduledFuture<?> scheduledDelegate;
 
-      public ListenableScheduledTask(
-          ListenableFuture<V> listenableDelegate, ScheduledFuture<?> scheduledDelegate) {
+      public IListenableScheduledTask(
+              IListenableFuture<V> listenableDelegate, ScheduledFuture<?> scheduledDelegate) {
         super(listenableDelegate);
         this.scheduledDelegate = scheduledDelegate;
       }
@@ -690,11 +690,11 @@ public final class MoreExecutors {
     }
 
     @GwtIncompatible // TODO
-    private static final class NeverSuccessfulListenableFutureTask
-        extends AbstractFuture.TrustedFuture<Void> implements Runnable {
+    private static final class NeverSuccessfulIListenableFutureTask
+        extends AbstractFutureI.TrustedFutureI<Void> implements Runnable {
       private final Runnable delegate;
 
-      public NeverSuccessfulListenableFutureTask(Runnable delegate) {
+      public NeverSuccessfulIListenableFutureTask(Runnable delegate) {
         this.delegate = checkNotNull(delegate);
       }
 
@@ -722,12 +722,12 @@ public final class MoreExecutors {
    */
 
   /**
-   * An implementation of {@link ExecutorService#invokeAny} for {@link ListeningExecutorService}
+   * An implementation of {@link ExecutorService#invokeAny} for {@link IListeningExecutorService}
    * implementations.
    */
   @GwtIncompatible
   static <T> T invokeAnyImpl(
-      ListeningExecutorService executorService,
+      IListeningExecutorService executorService,
       Collection<? extends Callable<T>> tasks,
       boolean timed,
       Duration timeout)
@@ -737,13 +737,13 @@ public final class MoreExecutors {
   }
 
   /**
-   * An implementation of {@link ExecutorService#invokeAny} for {@link ListeningExecutorService}
+   * An implementation of {@link ExecutorService#invokeAny} for {@link IListeningExecutorService}
    * implementations.
    */
   @SuppressWarnings("GoodTime") // should accept a java.time.Duration
   @GwtIncompatible
   static <T> T invokeAnyImpl(
-      ListeningExecutorService executorService,
+      IListeningExecutorService executorService,
       Collection<? extends Callable<T>> tasks,
       boolean timed,
       long timeout,
@@ -822,11 +822,11 @@ public final class MoreExecutors {
    * Submits the task and adds a listener that adds the future to {@code queue} when it completes.
    */
   @GwtIncompatible // TODO
-  private static <T> ListenableFuture<T> submitAndAddQueueListener(
-      ListeningExecutorService executorService,
+  private static <T> IListenableFuture<T> submitAndAddQueueListener(
+      IListeningExecutorService executorService,
       Callable<T> task,
       final BlockingQueue<Future<T>> queue) {
-    final ListenableFuture<T> future = executorService.submit(task);
+    final IListenableFuture<T> future = executorService.submit(task);
     future.addListener(
         new Runnable() {
           @Override
@@ -1094,7 +1094,7 @@ public final class MoreExecutors {
    * <p>Note, the returned executor can only be used once.
    */
   static Executor rejectionPropagatingExecutor(
-      final Executor delegate, final AbstractFuture<?> future) {
+      final Executor delegate, final AbstractFutureI<?> future) {
     checkNotNull(delegate);
     checkNotNull(future);
     if (delegate == directExecutor()) {

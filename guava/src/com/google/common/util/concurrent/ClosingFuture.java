@@ -73,7 +73,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <ol>
  *   <li>A pipeline starts at its leaf step (or steps), which is created from either a callable
- *       block or a {@link ListenableFuture}.
+ *       block or a {@link IListenableFuture}.
  *   <li>Each other step is derived from one or more input steps. At each step, zero or more objects
  *       can be captured for later closing.
  *   <li>There is one last step (the root of the tree), from which you can extract the final result
@@ -85,13 +85,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * Start a {@code ClosingFuture} pipeline {@linkplain #submit(ClosingCallable, Executor) from a
  * callable block} that may capture objects for later closing. To start a pipeline from a {@link
- * ListenableFuture} that doesn't create resources that should be closed later, you can use {@link
- * #from(ListenableFuture)} instead.
+ * IListenableFuture} that doesn't create resources that should be closed later, you can use {@link
+ * #from(IListenableFuture)} instead.
  *
  * <h3>Derived steps</h3>
  *
  * A {@code ClosingFuture} step can be derived from one or more input {@code ClosingFuture} steps in
- * ways similar to {@link FluentFuture}s:
+ * ways similar to {@link FluentFutureI}s:
  *
  * <ul>
  *   <li>by transforming the value from a successful input step,
@@ -398,18 +398,18 @@ public final class ClosingFuture<V> {
   }
 
   /**
-   * Starts a {@link ClosingFuture} pipeline with a {@link ListenableFuture}.
+   * Starts a {@link ClosingFuture} pipeline with a {@link IListenableFuture}.
    *
    * <p>{@code future}'s value will not be closed when the pipeline is done even if {@code V}
    * implements {@link Closeable}. In order to start a pipeline with a value that will be closed
    * when the pipeline is done, use {@link #submit(ClosingCallable, Executor)} instead.
    */
-  public static <V> ClosingFuture<V> from(ListenableFuture<V> future) {
+  public static <V> ClosingFuture<V> from(IListenableFuture<V> future) {
     return new ClosingFuture<V>(future);
   }
 
   /**
-   * Starts a {@link ClosingFuture} pipeline with a {@link ListenableFuture}.
+   * Starts a {@link ClosingFuture} pipeline with a {@link IListenableFuture}.
    *
    * <p>If {@code future} succeeds, its value will be closed (using {@code closingExecutor)} when
    * the pipeline is done, even if the pipeline is canceled or fails.
@@ -423,21 +423,21 @@ public final class ClosingFuture<V> {
    * @param closingExecutor the future's result will be closed on this executor
    * @deprecated Creating {@link Future}s of closeable types is dangerous in general because the
    *     underlying value may never be closed if the {@link Future} is canceled after its operation
-   *     begins. Consider replacing code that creates {@link ListenableFuture}s of closeable types,
+   *     begins. Consider replacing code that creates {@link IListenableFuture}s of closeable types,
    *     including those that pass them to this method, with {@link #submit(ClosingCallable,
    *     Executor)} in order to ensure that resources do not leak. Or, to start a pipeline with a
-   *     {@link ListenableFuture} that doesn't create values that should be closed, use {@link
+   *     {@link IListenableFuture} that doesn't create values that should be closed, use {@link
    *     ClosingFuture#from}.
    */
   @Deprecated
   public static <C extends @Nullable Object & @Nullable AutoCloseable>
       ClosingFuture<C> eventuallyClosing(
-          ListenableFuture<C> future, final Executor closingExecutor) {
+          IListenableFuture<C> future, final Executor closingExecutor) {
     checkNotNull(closingExecutor);
     final ClosingFuture<C> closingFuture = new ClosingFuture<>(nonCancellationPropagating(future));
     Futures.addCallback(
         future,
-        new FutureCallback<@Nullable AutoCloseable>() {
+        new IFutureCallback<@Nullable AutoCloseable>() {
           @Override
           public void onSuccess(@Nullable AutoCloseable result) {
             closingFuture.closeables.closer.eventuallyClose(result, closingExecutor);
@@ -571,16 +571,16 @@ public final class ClosingFuture<V> {
 
   private final AtomicReference<State> state = new AtomicReference<>(OPEN);
   private final CloseableList closeables = new CloseableList();
-  private final FluentFuture<V> future;
+  private final FluentFutureI<V> future;
 
-  private ClosingFuture(ListenableFuture<V> future) {
-    this.future = FluentFuture.from(future);
+  private ClosingFuture(IListenableFuture<V> future) {
+    this.future = FluentFutureI.from(future);
   }
 
   private ClosingFuture(final ClosingCallable<V> callable, Executor executor) {
     checkNotNull(callable);
-    TrustedListenableFutureTask<V> task =
-        TrustedListenableFutureTask.create(
+    TrustedIListenableFutureTask<V> task =
+        TrustedIListenableFutureTask.create(
             new Callable<V>() {
               @Override
               public V call() throws Exception {
@@ -598,11 +598,11 @@ public final class ClosingFuture<V> {
 
   private ClosingFuture(final AsyncClosingCallable<V> callable, Executor executor) {
     checkNotNull(callable);
-    TrustedListenableFutureTask<V> task =
-        TrustedListenableFutureTask.create(
-            new AsyncCallable<V>() {
+    TrustedIListenableFutureTask<V> task =
+        TrustedIListenableFutureTask.create(
+            new IAsyncCallable<V>() {
               @Override
-              public ListenableFuture<V> call() throws Exception {
+              public IListenableFuture<V> call() throws Exception {
                 CloseableList newCloseables = new CloseableList();
                 try {
                   ClosingFuture<V> closingFuture = callable.call(newCloseables.closer);
@@ -633,7 +633,7 @@ public final class ClosingFuture<V> {
    * a derivation method <i>on the same instance</i>. This is important because calling {@code
    * statusFuture} alone does not provide a way to close the pipeline.
    */
-  public ListenableFuture<?> statusFuture() {
+  public IListenableFuture<?> statusFuture() {
     return nonCancellationPropagating(future.transform(constant(null), directExecutor()));
   }
 
@@ -656,7 +656,7 @@ public final class ClosingFuture<V> {
    * }</pre>
    *
    * <p>When selecting an executor, note that {@code directExecutor} is dangerous in some cases. See
-   * the discussion in the {@link ListenableFuture#addListener} documentation. All its warnings
+   * the discussion in the {@link IListenableFuture#addListener} documentation. All its warnings
    * about heavyweight listeners are also applicable to heavyweight functions passed to this method.
    *
    * <p>After calling this method, you may not call {@link #finishToFuture()}, {@link
@@ -673,10 +673,10 @@ public final class ClosingFuture<V> {
   public <U> ClosingFuture<U> transform(
       final ClosingFunction<? super V, U> function, Executor executor) {
     checkNotNull(function);
-    AsyncFunction<V, U> applyFunction =
-        new AsyncFunction<V, U>() {
+    IAsyncFunction<V, U> applyFunction =
+        new IAsyncFunction<V, U>() {
           @Override
-          public ListenableFuture<U> apply(V input) throws Exception {
+          public IListenableFuture<U> apply(V input) throws Exception {
             return closeables.applyClosingFunction(function, input);
           }
 
@@ -709,16 +709,16 @@ public final class ClosingFuture<V> {
    * <p>Usage guidelines for this method:
    *
    * <ul>
-   *   <li>Use this method only when calling an API that returns a {@link ListenableFuture} or a
+   *   <li>Use this method only when calling an API that returns a {@link IListenableFuture} or a
    *       {@code ClosingFuture}. If possible, prefer calling {@link #transform(ClosingFunction,
    *       Executor)} instead, with a function that returns the next value directly.
    *   <li>Call {@link DeferredCloser#eventuallyClose(Closeable, Executor) closer.eventuallyClose()}
    *       for every closeable object this step creates in order to capture it for later closing.
-   *   <li>Return a {@code ClosingFuture}. To turn a {@link ListenableFuture} into a {@code
-   *       ClosingFuture} call {@link #from(ListenableFuture)}.
+   *   <li>Return a {@code ClosingFuture}. To turn a {@link IListenableFuture} into a {@code
+   *       ClosingFuture} call {@link #from(IListenableFuture)}.
    *   <li>In case this step doesn't create new closeables, you can adapt an API that returns a
-   *       {@link ListenableFuture} to return a {@code ClosingFuture} by wrapping it with a call to
-   *       {@link #withoutCloser(AsyncFunction)}
+   *       {@link IListenableFuture} to return a {@code ClosingFuture} by wrapping it with a call to
+   *       {@link #withoutCloser(IAsyncFunction)}
    * </ul>
    *
    * <p>Example usage:
@@ -746,7 +746,7 @@ public final class ClosingFuture<V> {
    * }</pre>
    *
    * <p>When selecting an executor, note that {@code directExecutor} is dangerous in some cases. See
-   * the discussion in the {@link ListenableFuture#addListener} documentation. All its warnings
+   * the discussion in the {@link IListenableFuture#addListener} documentation. All its warnings
    * about heavyweight listeners are also applicable to heavyweight functions passed to this method.
    * (Specifically, {@code directExecutor} functions should avoid heavyweight operations inside
    * {@code AsyncClosingFunction.apply}. Any heavyweight operations should occur in other threads
@@ -767,10 +767,10 @@ public final class ClosingFuture<V> {
   public <U> ClosingFuture<U> transformAsync(
       final AsyncClosingFunction<? super V, U> function, Executor executor) {
     checkNotNull(function);
-    AsyncFunction<V, U> applyFunction =
-        new AsyncFunction<V, U>() {
+    IAsyncFunction<V, U> applyFunction =
+        new IAsyncFunction<V, U>() {
           @Override
-          public ListenableFuture<U> apply(V input) throws Exception {
+          public IListenableFuture<U> apply(V input) throws Exception {
             return closeables.applyAsyncClosingFunction(function, input);
           }
 
@@ -783,9 +783,9 @@ public final class ClosingFuture<V> {
   }
 
   /**
-   * Returns an {@link AsyncClosingFunction} that applies an {@link AsyncFunction} to an input,
+   * Returns an {@link AsyncClosingFunction} that applies an {@link IAsyncFunction} to an input,
    * ignoring the DeferredCloser and returning a {@code ClosingFuture} derived from the returned
-   * {@link ListenableFuture}.
+   * {@link IListenableFuture}.
    *
    * <p>Use this method to pass a transformation to {@link #transformAsync(AsyncClosingFunction,
    * Executor)} or to {@link #catchingAsync(Class, AsyncClosingFunction, Executor)} as long as it
@@ -794,7 +794,7 @@ public final class ClosingFuture<V> {
    * <ul>
    *   <li>It does not need to capture any {@link Closeable} objects by calling {@link
    *       DeferredCloser#eventuallyClose(Closeable, Executor)}.
-   *   <li>It returns a {@link ListenableFuture}.
+   *   <li>It returns a {@link IListenableFuture}.
    * </ul>
    *
    * <p>Example usage:
@@ -806,10 +806,10 @@ public final class ClosingFuture<V> {
    * }</pre>
    *
    * @param function transforms the value of a {@code ClosingFuture} step to a {@link
-   *     ListenableFuture} with the value of a derived step
+   *     IListenableFuture} with the value of a derived step
    */
   public static <V, U> AsyncClosingFunction<V, U> withoutCloser(
-      final AsyncFunction<V, U> function) {
+      final IAsyncFunction<V, U> function) {
     checkNotNull(function);
     return new AsyncClosingFunction<V, U>() {
       @Override
@@ -840,7 +840,7 @@ public final class ClosingFuture<V> {
    * }</pre>
    *
    * <p>When selecting an executor, note that {@code directExecutor} is dangerous in some cases. See
-   * the discussion in the {@link ListenableFuture#addListener} documentation. All its warnings
+   * the discussion in the {@link IListenableFuture#addListener} documentation. All its warnings
    * about heavyweight listeners are also applicable to heavyweight functions passed to this method.
    *
    * <p>After calling this method, you may not call {@link #finishToFuture()}, {@link
@@ -869,10 +869,10 @@ public final class ClosingFuture<V> {
   private <X extends Throwable, W extends V> ClosingFuture<V> catchingMoreGeneric(
       Class<X> exceptionType, final ClosingFunction<? super X, W> fallback, Executor executor) {
     checkNotNull(fallback);
-    AsyncFunction<X, W> applyFallback =
-        new AsyncFunction<X, W>() {
+    IAsyncFunction<X, W> applyFallback =
+        new IAsyncFunction<X, W>() {
           @Override
-          public ListenableFuture<W> apply(X exception) throws Exception {
+          public IListenableFuture<W> apply(X exception) throws Exception {
             return closeables.applyClosingFunction(fallback, exception);
           }
 
@@ -906,17 +906,17 @@ public final class ClosingFuture<V> {
    * <p>Usage guidelines for this method:
    *
    * <ul>
-   *   <li>Use this method only when calling an API that returns a {@link ListenableFuture} or a
+   *   <li>Use this method only when calling an API that returns a {@link IListenableFuture} or a
    *       {@code ClosingFuture}. If possible, prefer calling {@link #catching(Class,
    *       ClosingFunction, Executor)} instead, with a function that returns the next value
    *       directly.
    *   <li>Call {@link DeferredCloser#eventuallyClose(Closeable, Executor) closer.eventuallyClose()}
    *       for every closeable object this step creates in order to capture it for later closing.
-   *   <li>Return a {@code ClosingFuture}. To turn a {@link ListenableFuture} into a {@code
-   *       ClosingFuture} call {@link #from(ListenableFuture)}.
+   *   <li>Return a {@code ClosingFuture}. To turn a {@link IListenableFuture} into a {@code
+   *       ClosingFuture} call {@link #from(IListenableFuture)}.
    *   <li>In case this step doesn't create new closeables, you can adapt an API that returns a
-   *       {@link ListenableFuture} to return a {@code ClosingFuture} by wrapping it with a call to
-   *       {@link #withoutCloser(AsyncFunction)}
+   *       {@link IListenableFuture} to return a {@code ClosingFuture} by wrapping it with a call to
+   *       {@link #withoutCloser(IAsyncFunction)}
    * </ul>
    *
    * <p>Example usage:
@@ -930,7 +930,7 @@ public final class ClosingFuture<V> {
    * }</pre>
    *
    * <p>When selecting an executor, note that {@code directExecutor} is dangerous in some cases. See
-   * the discussion in the {@link ListenableFuture#addListener} documentation. All its warnings
+   * the discussion in the {@link IListenableFuture#addListener} documentation. All its warnings
    * about heavyweight listeners are also applicable to heavyweight functions passed to this method.
    * (Specifically, {@code directExecutor} functions should avoid heavyweight operations inside
    * {@code AsyncClosingFunction.apply}. Any heavyweight operations should occur in other threads
@@ -968,10 +968,10 @@ public final class ClosingFuture<V> {
       final AsyncClosingFunction<? super X, W> fallback,
       Executor executor) {
     checkNotNull(fallback);
-    AsyncFunction<X, W> asyncFunction =
-        new AsyncFunction<X, W>() {
+    IAsyncFunction<X, W> IAsyncFunction =
+        new IAsyncFunction<X, W>() {
           @Override
-          public ListenableFuture<W> apply(X exception) throws Exception {
+          public IListenableFuture<W> apply(X exception) throws Exception {
             return closeables.applyAsyncClosingFunction(fallback, exception);
           }
 
@@ -980,7 +980,7 @@ public final class ClosingFuture<V> {
             return fallback.toString();
           }
         };
-    return derive(future.catchingAsync(exceptionType, asyncFunction, executor));
+    return derive(future.catchingAsync(exceptionType, IAsyncFunction, executor));
   }
 
   /**
@@ -999,7 +999,7 @@ public final class ClosingFuture<V> {
    *
    * @return a {@link Future} that represents the final value or exception of the pipeline
    */
-  public FluentFuture<V> finishToFuture() {
+  public FluentFutureI<V> finishToFuture() {
     if (compareAndUpdateState(OPEN, WILL_CLOSE)) {
       logger.log(FINER, "will close {0}", this);
       future.addListener(
@@ -1114,7 +1114,7 @@ public final class ClosingFuture<V> {
     closeables.close();
   }
 
-  private <U> ClosingFuture<U> derive(FluentFuture<U> future) {
+  private <U> ClosingFuture<U> derive(FluentFutureI<U> future) {
     ClosingFuture<U> derived = new ClosingFuture<>(future);
     becomeSubsumedInto(derived.closeables);
     return derived;
@@ -1169,7 +1169,7 @@ public final class ClosingFuture<V> {
       }
     }
 
-    private <V extends @Nullable Object> FluentFuture<V> callAsync(
+    private <V extends @Nullable Object> FluentFutureI<V> callAsync(
         AsyncCombiningCallable<V> combiner, CloseableList closeables) throws Exception {
       beingCalled = true;
       CloseableList newCloseables = new CloseableList();
@@ -1322,14 +1322,14 @@ public final class ClosingFuture<V> {
      * <p>Usage guidelines for this method:
      *
      * <ul>
-     *   <li>Use this method only when calling an API that returns a {@link ListenableFuture} or a
+     *   <li>Use this method only when calling an API that returns a {@link IListenableFuture} or a
      *       {@code ClosingFuture}. If possible, prefer calling {@link #call(CombiningCallable,
      *       Executor)} instead, with a function that returns the next value directly.
      *   <li>Call {@link DeferredCloser#eventuallyClose(Closeable, Executor)
      *       closer.eventuallyClose()} for every closeable object this step creates in order to
      *       capture it for later closing.
-     *   <li>Return a {@code ClosingFuture}. To turn a {@link ListenableFuture} into a {@code
-     *       ClosingFuture} call {@link #from(ListenableFuture)}.
+     *   <li>Return a {@code ClosingFuture}. To turn a {@link IListenableFuture} into a {@code
+     *       ClosingFuture} call {@link #from(IListenableFuture)}.
      * </ul>
      *
      * <p>The same warnings about doing heavyweight operations within {@link
@@ -1337,10 +1337,10 @@ public final class ClosingFuture<V> {
      */
     public <V> ClosingFuture<V> callAsync(
         final AsyncCombiningCallable<V> combiningCallable, Executor executor) {
-      AsyncCallable<V> asyncCallable =
-          new AsyncCallable<V>() {
+      IAsyncCallable<V> IAsyncCallable =
+          new IAsyncCallable<V>() {
             @Override
-            public ListenableFuture<V> call() throws Exception {
+            public IListenableFuture<V> call() throws Exception {
               return new Peeker(inputs).callAsync(combiningCallable, closeables);
             }
 
@@ -1350,7 +1350,7 @@ public final class ClosingFuture<V> {
             }
           };
       ClosingFuture<V> derived =
-          new ClosingFuture<>(futureCombiner().callAsync(asyncCallable, executor));
+          new ClosingFuture<>(futureCombiner().callAsync(IAsyncCallable, executor));
       derived.closeables.add(closeables, directExecutor());
       return derived;
     }
@@ -1361,15 +1361,15 @@ public final class ClosingFuture<V> {
           : Futures.whenAllComplete(inputFutures());
     }
 
-    private static final Function<ClosingFuture<?>, FluentFuture<?>> INNER_FUTURE =
-        new Function<ClosingFuture<?>, FluentFuture<?>>() {
+    private static final Function<ClosingFuture<?>, FluentFutureI<?>> INNER_FUTURE =
+        new Function<ClosingFuture<?>, FluentFutureI<?>>() {
           @Override
-          public FluentFuture<?> apply(ClosingFuture<?> future) {
+          public FluentFutureI<?> apply(ClosingFuture<?> future) {
             return future.future;
           }
         };
 
-    private ImmutableList<FluentFuture<?>> inputFutures() {
+    private ImmutableList<FluentFutureI<?>> inputFutures() {
       return FluentIterable.from(inputs).transform(INNER_FUTURE).toList();
     }
   }
@@ -1493,14 +1493,14 @@ public final class ClosingFuture<V> {
      * <p>Usage guidelines for this method:
      *
      * <ul>
-     *   <li>Use this method only when calling an API that returns a {@link ListenableFuture} or a
+     *   <li>Use this method only when calling an API that returns a {@link IListenableFuture} or a
      *       {@code ClosingFuture}. If possible, prefer calling {@link #call(CombiningCallable,
      *       Executor)} instead, with a function that returns the next value directly.
      *   <li>Call {@link DeferredCloser#eventuallyClose(Closeable, Executor)
      *       closer.eventuallyClose()} for every closeable object this step creates in order to
      *       capture it for later closing.
-     *   <li>Return a {@code ClosingFuture}. To turn a {@link ListenableFuture} into a {@code
-     *       ClosingFuture} call {@link #from(ListenableFuture)}.
+     *   <li>Return a {@code ClosingFuture}. To turn a {@link IListenableFuture} into a {@code
+     *       ClosingFuture} call {@link #from(IListenableFuture)}.
      * </ul>
      *
      * <p>The same warnings about doing heavyweight operations within {@link
@@ -1658,14 +1658,14 @@ public final class ClosingFuture<V> {
      * <p>Usage guidelines for this method:
      *
      * <ul>
-     *   <li>Use this method only when calling an API that returns a {@link ListenableFuture} or a
+     *   <li>Use this method only when calling an API that returns a {@link IListenableFuture} or a
      *       {@code ClosingFuture}. If possible, prefer calling {@link #call(CombiningCallable,
      *       Executor)} instead, with a function that returns the next value directly.
      *   <li>Call {@link DeferredCloser#eventuallyClose(Closeable, Executor)
      *       closer.eventuallyClose()} for every closeable object this step creates in order to
      *       capture it for later closing.
-     *   <li>Return a {@code ClosingFuture}. To turn a {@link ListenableFuture} into a {@code
-     *       ClosingFuture} call {@link #from(ListenableFuture)}.
+     *   <li>Return a {@code ClosingFuture}. To turn a {@link IListenableFuture} into a {@code
+     *       ClosingFuture} call {@link #from(IListenableFuture)}.
      * </ul>
      *
      * <p>The same warnings about doing heavyweight operations within {@link
@@ -1842,14 +1842,14 @@ public final class ClosingFuture<V> {
      * <p>Usage guidelines for this method:
      *
      * <ul>
-     *   <li>Use this method only when calling an API that returns a {@link ListenableFuture} or a
+     *   <li>Use this method only when calling an API that returns a {@link IListenableFuture} or a
      *       {@code ClosingFuture}. If possible, prefer calling {@link #call(CombiningCallable,
      *       Executor)} instead, with a function that returns the next value directly.
      *   <li>Call {@link DeferredCloser#eventuallyClose(Closeable, Executor)
      *       closer.eventuallyClose()} for every closeable object this step creates in order to
      *       capture it for later closing.
-     *   <li>Return a {@code ClosingFuture}. To turn a {@link ListenableFuture} into a {@code
-     *       ClosingFuture} call {@link #from(ListenableFuture)}.
+     *   <li>Return a {@code ClosingFuture}. To turn a {@link IListenableFuture} into a {@code
+     *       ClosingFuture} call {@link #from(IListenableFuture)}.
      * </ul>
      *
      * <p>The same warnings about doing heavyweight operations within {@link
@@ -2042,14 +2042,14 @@ public final class ClosingFuture<V> {
      * <p>Usage guidelines for this method:
      *
      * <ul>
-     *   <li>Use this method only when calling an API that returns a {@link ListenableFuture} or a
+     *   <li>Use this method only when calling an API that returns a {@link IListenableFuture} or a
      *       {@code ClosingFuture}. If possible, prefer calling {@link #call(CombiningCallable,
      *       Executor)} instead, with a function that returns the next value directly.
      *   <li>Call {@link DeferredCloser#eventuallyClose(Closeable, Executor)
      *       closer.eventuallyClose()} for every closeable object this step creates in order to
      *       capture it for later closing.
-     *   <li>Return a {@code ClosingFuture}. To turn a {@link ListenableFuture} into a {@code
-     *       ClosingFuture} call {@link #from(ListenableFuture)}.
+     *   <li>Return a {@code ClosingFuture}. To turn a {@link IListenableFuture} into a {@code
+     *       ClosingFuture} call {@link #from(IListenableFuture)}.
      * </ul>
      *
      * <p>The same warnings about doing heavyweight operations within {@link
@@ -2089,7 +2089,7 @@ public final class ClosingFuture<V> {
   protected void finalize() {
     if (state.get().equals(OPEN)) {
       logger.log(SEVERE, "Uh oh! An open ClosingFuture has leaked and will close: {0}", this);
-      FluentFuture<V> unused = finishToFuture();
+      FluentFutureI<V> unused = finishToFuture();
     }
   }
 
@@ -2137,7 +2137,7 @@ public final class ClosingFuture<V> {
     private volatile boolean closed;
     private volatile CountDownLatch whenClosed;
 
-    <V, U> ListenableFuture<U> applyClosingFunction(
+    <V, U> IListenableFuture<U> applyClosingFunction(
         ClosingFunction<? super V, U> transformation, V input) throws Exception {
       // TODO(dpb): Consider ways to defer closing without creating a separate CloseableList.
       CloseableList newCloseables = new CloseableList();
@@ -2148,7 +2148,7 @@ public final class ClosingFuture<V> {
       }
     }
 
-    <V, U> FluentFuture<U> applyAsyncClosingFunction(
+    <V, U> FluentFutureI<U> applyAsyncClosingFunction(
         AsyncClosingFunction<V, U> transformation, V input) throws Exception {
       // TODO(dpb): Consider ways to defer closing without creating a separate CloseableList.
       CloseableList newCloseables = new CloseableList();
@@ -2233,7 +2233,7 @@ public final class ClosingFuture<V> {
     SUBSUMED,
 
     /**
-     * Some {@link ListenableFuture} has a callback attached that will close the {@link
+     * Some {@link IListenableFuture} has a callback attached that will close the {@link
      * CloseableList}, but it has not yet run. The {@link CloseableList} may not be subsumed.
      */
     WILL_CLOSE,

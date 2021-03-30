@@ -37,8 +37,8 @@ final class FuturesGetCheckedInputs {
   static final Error ERROR = new Error("mymessage");
   static final Future<String> FAILED_FUTURE_ERROR = immediateFailedFuture(ERROR);
   static final Future<String> RUNTIME_EXCEPTION_FUTURE =
-      UncheckedThrowingFuture.throwingRuntimeException(RUNTIME_EXCEPTION);
-  static final Future<String> ERROR_FUTURE = UncheckedThrowingFuture.throwingError(ERROR);
+      UncheckedThrowingFutureI.throwingRuntimeException(RUNTIME_EXCEPTION);
+  static final Future<String> ERROR_FUTURE = UncheckedThrowingFutureI.throwingError(ERROR);
 
   public static final class TwoArgConstructorException extends Exception {
     public TwoArgConstructorException(String message, Throwable cause) {
