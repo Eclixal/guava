@@ -64,15 +64,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 @GwtCompatible
 public class Joiner {
-  /** Returns a joiner which automatically places {@code separator} between consecutive elements. */
-  public static Joiner on(String separator) {
-    return new Joiner(separator);
-  }
-
-  /** Returns a joiner which automatically places {@code separator} between consecutive elements. */
-  public static Joiner on(char separator) {
-    return new Joiner(String.valueOf(separator));
-  }
 
   private final String separator;
 
@@ -82,6 +73,16 @@ public class Joiner {
 
   private Joiner(Joiner prototype) {
     this.separator = prototype.separator;
+  }
+
+  /** Returns a joiner which automatically places {@code separator} between consecutive elements. */
+  public static Joiner on(String separator) {
+    return new Joiner(separator);
+  }
+
+  /** Returns a joiner which automatically places {@code separator} between consecutive elements. */
+  public static Joiner on(char separator) {
+    return new Joiner(String.valueOf(separator));
   }
 
   /**

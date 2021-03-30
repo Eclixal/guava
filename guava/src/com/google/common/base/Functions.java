@@ -37,7 +37,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 @GwtCompatible
 public final class Functions {
-  private Functions() {}
 
   /**
    * A function equivalent to the method reference {@code Object::toString}, for users not yet using
